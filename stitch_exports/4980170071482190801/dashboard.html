@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AutoPoster | Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5048e5",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#121121",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-size: 20px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">AutoPoster</h1>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary font-medium" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">add_box</span>
+<span>Create Post</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span>Calendar</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
+<div class="size-8 rounded-full bg-slate-300" data-alt="User profile avatar circle" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBC86yGc_YSeYVLrOWR29C5xTqWRnGNnEAtJxxLedDyFNtj3hOk1KdNJFiBlcF_IyicEUO8956mmfy0oEEGVW1JsEqubNgYbH4mMxCrUrj03jZxnSBfkXndTQ9zHu5gqolt0A903rENdljFJ39E-r3hfYq148VpGVHK-wMD00ERdHr6MlwXf-tG_r_CSSB9rynCuo0WtvkZBSr_zEVfr7tfF0O-T9PRk8NzbH1tGHbFZkUPF0hi5GjqhU1rgzeuXBcBpkfQdvra7-Q')"></div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-semibold truncate">Alex Rivera</p>
+<p class="text-xs text-slate-500 truncate">Pro Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Top Nav -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search posts, analytics, or drafts..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="size-9 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined !text-[18px]">add</span>
+                    New Post
+                </button>
+</div>
+</header>
+<!-- Dashboard Content -->
+<div class="p-8 max-w-7xl mx-auto w-full">
+<div class="mb-8">
+<h2 class="text-3xl font-bold tracking-tight">Overview</h2>
+<p class="text-slate-500 mt-1">Track your performance and manage upcoming content.</p>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-500">Total Reach</p>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">+12.4%</span>
+</div>
+<p class="text-2xl font-bold mt-2">128.4k</p>
+<div class="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[70%]"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-500">Engagement Rate</p>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full">+5.2%</span>
+</div>
+<p class="text-2xl font-bold mt-2">4.82%</p>
+<div class="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[45%]"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-500">Scheduled Posts</p>
+<span class="text-slate-400 text-xs font-bold bg-slate-50 dark:bg-slate-800 px-2 py-0.5 rounded-full">Next: 2h</span>
+</div>
+<p class="text-2xl font-bold mt-2">14</p>
+<div class="mt-4 h-1 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+</div>
+<!-- Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Upcoming Posts -->
+<div class="lg:col-span-2 space-y-6">
+<div class="flex items-center justify-between">
+<h3 class="text-lg font-bold">Upcoming Posts</h3>
+<a class="text-primary text-sm font-medium hover:underline" href="#">View Calendar</a>
+</div>
+<!-- Post Card 1 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:border-primary/40 transition-colors group">
+<div class="p-5 flex flex-col md:flex-row gap-5">
+<div class="w-full md:w-40 h-28 bg-slate-100 dark:bg-slate-800 rounded-lg flex-shrink-0 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent" data-alt="Abstract colorful gradient pattern placeholder"></div>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-300 scale-150">image</span>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-bold rounded uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined !text-[12px]">brand_awareness</span> LinkedIn
+                                            </span>
+<span class="text-xs text-slate-400">• Today at 4:30 PM</span>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500"><span class="material-symbols-outlined">edit</span></button>
+<button class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-red-500"><span class="material-symbols-outlined">delete</span></button>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
+                                        Excited to announce our latest features in the dashboard update! We've focused on speed and simplicity...
+                                    </p>
+</div>
+<div class="flex items-center gap-4 mt-4 text-xs text-slate-500 font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined !text-[14px]">sell</span> Features</span>
+<span class="flex items-center gap-1"><span class="material-symbols-outlined !text-[14px]">alternate_email</span> Mentions: 2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Post Card 2 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm hover:border-primary/40 transition-colors group">
+<div class="p-5 flex flex-col md:flex-row gap-5">
+<div class="w-full md:w-40 h-28 bg-slate-100 dark:bg-slate-800 rounded-lg flex-shrink-0 relative overflow-hidden">
+<div class="absolute inset-0 bg-gradient-to-tr from-primary/20 to-indigo-500/20" data-alt="Blue and indigo soft gradient background"></div>
+<span class="material-symbols-outlined absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-300 scale-150">image</span>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-[10px] font-bold rounded uppercase tracking-wider flex items-center gap-1">
+<span class="material-symbols-outlined !text-[12px]">close</span> X (Twitter)
+                                            </span>
+<span class="text-xs text-slate-400">• Tomorrow at 9:00 AM</span>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500"><span class="material-symbols-outlined">edit</span></button>
+<button class="p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-red-500"><span class="material-symbols-outlined">delete</span></button>
+</div>
+</div>
+<p class="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
+                                        Why building in public is the ultimate growth hack for 2024. A short thread 🧵 👇
+                                    </p>
+</div>
+<div class="flex items-center gap-4 mt-4 text-xs text-slate-500 font-medium">
+<span class="flex items-center gap-1"><span class="material-symbols-outlined !text-[14px]">format_list_bulleted</span> Thread (5)</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Published & Stats -->
+<div class="space-y-8">
+<section>
+<h3 class="text-lg font-bold mb-4">Post Statistics</h3>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-5 shadow-sm">
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-slate-500">Scheduled</span>
+<span class="text-sm font-semibold">14</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary w-[30%] h-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-slate-500">Published</span>
+<span class="text-sm font-semibold">412</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-emerald-500 w-[80%] h-full"></div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm text-slate-500">Drafts</span>
+<span class="text-sm font-semibold">8</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-amber-400 w-[15%] h-full"></div>
+</div>
+</div>
+</div>
+</section>
+<section>
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold">Recent History</h3>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer">more_horiz</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+<div class="size-8 rounded bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600">
+<span class="material-symbols-outlined !text-[18px]">check_circle</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium truncate">Product Update #42</p>
+<p class="text-xs text-slate-400">Published to LinkedIn • 2h ago</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+<div class="size-8 rounded bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-600">
+<span class="material-symbols-outlined !text-[18px]">check_circle</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium truncate">Morning Motivation Quote</p>
+<p class="text-xs text-slate-400">Published to X • 5h ago</p>
+</div>
+</div>
+<div class="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+<div class="size-8 rounded bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600">
+<span class="material-symbols-outlined !text-[18px]">error</span>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-medium truncate">Weekend Workshop</p>
+<p class="text-xs text-slate-400">Failed to publish • 1d ago</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

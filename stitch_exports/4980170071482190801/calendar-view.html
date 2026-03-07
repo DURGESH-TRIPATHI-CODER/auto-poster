@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5048e5",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#121121",
+                        "linkedin": "#0077b5",
+                        "x-black": "#000000",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-6 py-4 sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">AutoPoster</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Calendar</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Analytics</a>
+<a class="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-primary transition-colors" href="#">Accounts</a>
+</nav>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center size-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700">
+<img alt="Profile" data-alt="User profile avatar circle" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzpz6MsNH9Ysb1Sqo5M1Oz2SLb4xl9W8UuS_BDjfWy0UgENJD7eakJlET7Om5D_sOxVRCdY0_LmxmZsiW55Zai7k0z5_Yvix5gtWHAIwEtYNq7o3GS_CFUFCYPKq53vlY69Gatuj3gwIMTuLeZ2bz4ytU2UYm51eekkj03eyEqFJG0wE6u-aUgcfjQ_NrlyIMmmENQE8MhM9rIE2js1DIHFEM3Ek5XwrVbdPbTpTKV5kkXW79g1EjduWTI9xvTOqL3i6IrHv6nnZA"/>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-3xl font-bold">October 2023</h1>
+<p class="text-slate-500 dark:text-slate-400">Week of 16th - 22nd</p>
+</div>
+<div class="flex items-center gap-2 bg-white dark:bg-slate-900 p-1 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<button class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Day</button>
+<button class="px-4 py-2 text-sm font-bold rounded-lg bg-primary text-white shadow-sm">Week</button>
+<button class="px-4 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Month</button>
+</div>
+<div class="flex items-center gap-3">
+<div class="flex items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 border-r border-slate-200 dark:border-slate-800">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800">Today</button>
+<button class="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 border-l border-slate-200 dark:border-slate-800">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg font-semibold transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">add</span>
+<span>New Post</span>
+</button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="grid grid-cols-7 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+<div class="p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0">
+<p class="text-xs font-bold uppercase tracking-wider text-slate-400">Mon</p>
+<p class="text-xl font-bold mt-1">16</p>
+</div>
+<div class="p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0">
+<p class="text-xs font-bold uppercase tracking-wider text-slate-400">Tue</p>
+<p class="text-xl font-bold mt-1">17</p>
+</div>
+<div class="p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0 bg-primary/5">
+<p class="text-xs font-bold uppercase tracking-wider text-primary">Wed</p>
+<p class="text-xl font-bold mt-1 text-primary">18</p>
+<div class="w-1.5 h-1.5 bg-primary rounded-full mx-auto mt-1"></div>
+</div>
+<div class="p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0">
+<p class="text-xs font-bold uppercase tracking-wider text-slate-400">Thu</p>
+<p class="text-xl font-bold mt-1">19</p>
+</div>
+<div class="p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0">
+<p class="text-xs font-bold uppercase tracking-wider text-slate-400">Fri</p>
+<p class="text-xl font-bold mt-1">20</p>
+</div>
+<div class="p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0">
+<p class="text-xs font-bold uppercase tracking-wider text-slate-400 text-slate-300">Sat</p>
+<p class="text-xl font-bold mt-1 text-slate-400">21</p>
+</div>
+<div class="p-4 text-center border-r border-slate-200 dark:border-slate-800 last:border-r-0">
+<p class="text-xs font-bold uppercase tracking-wider text-slate-400 text-slate-300">Sun</p>
+<p class="text-xl font-bold mt-1 text-slate-400">22</p>
+</div>
+</div>
+<div class="grid grid-cols-7 min-h-[600px] divide-x divide-slate-200 dark:divide-slate-800">
+<!-- Monday -->
+<div class="p-3 flex flex-col gap-3">
+<div class="group relative flex flex-col gap-2 p-3 bg-linkedin rounded-xl text-white shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-80">09:30 AM</span>
+<span class="material-symbols-outlined text-sm">share</span>
+</div>
+<p class="text-xs font-medium line-clamp-2">How AI is transforming digital marketing in 2024...</p>
+</div>
+</div>
+<!-- Tuesday -->
+<div class="p-3 flex flex-col gap-3">
+<div class="group relative flex flex-col gap-2 p-3 bg-x-black rounded-xl text-white shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-80">02:00 PM</span>
+<span class="material-symbols-outlined text-sm">bolt</span>
+</div>
+<p class="text-xs font-medium line-clamp-2">Product update: We just launched 5 new features!</p>
+</div>
+</div>
+<!-- Wednesday (Today) -->
+<div class="p-3 flex flex-col gap-3 bg-slate-50/30 dark:bg-slate-800/10">
+<div class="group relative flex flex-col gap-2 p-3 bg-linkedin rounded-xl text-white shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-80">10:00 AM</span>
+<span class="material-symbols-outlined text-sm">check_circle</span>
+</div>
+<p class="text-xs font-medium line-clamp-2">The future of remote work is hybrid. Here's why...</p>
+</div>
+<div class="group relative flex flex-col gap-2 p-3 bg-x-black rounded-xl text-white shadow-md hover:scale-[1.02] transition-transform cursor-pointer border-l-4 border-amber-400">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-80">04:30 PM</span>
+<span class="material-symbols-outlined text-sm">pending</span>
+</div>
+<p class="text-xs font-medium line-clamp-2">Quick poll: What's your favorite productivity tool?</p>
+</div>
+</div>
+<!-- Thursday -->
+<div class="p-3 flex flex-col gap-3">
+<div class="group relative flex flex-col gap-2 p-3 bg-linkedin rounded-xl text-white shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-80">08:00 AM</span>
+<span class="material-symbols-outlined text-sm">schedule</span>
+</div>
+<p class="text-xs font-medium line-clamp-2">Coffee talk: Start your morning with these tips.</p>
+</div>
+</div>
+<!-- Friday -->
+<div class="p-3 flex flex-col gap-3">
+<div class="group relative flex flex-col gap-2 p-3 bg-x-black rounded-xl text-white shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-80">05:00 PM</span>
+<span class="material-symbols-outlined text-sm">celebration</span>
+</div>
+<p class="text-xs font-medium line-clamp-2">Weekend vibes! What are your plans?</p>
+</div>
+<div class="group relative flex flex-col gap-2 p-3 bg-linkedin rounded-xl text-white shadow-md hover:scale-[1.02] transition-transform cursor-pointer">
+<div class="flex items-center justify-between">
+<span class="text-[10px] font-bold uppercase tracking-widest opacity-80">06:00 PM</span>
+<span class="material-symbols-outlined text-sm">schedule</span>
+</div>
+<p class="text-xs font-medium line-clamp-2">Weekly wrap-up of industry news.</p>
+</div>
+</div>
+<!-- Saturday -->
+<div class="p-3 flex flex-col gap-3 bg-slate-50/10 dark:bg-slate-800/5">
+<div class="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center p-6 h-24 hover:border-primary/50 cursor-pointer transition-colors group">
+<span class="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors">add_circle</span>
+</div>
+</div>
+<!-- Sunday -->
+<div class="p-3 flex flex-col gap-3 bg-slate-50/10 dark:bg-slate-800/5">
+<!-- Empty -->
+</div>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-blue-50 dark:bg-blue-900/20 text-linkedin rounded-lg">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<h3 class="font-bold">Weekly Performance</h3>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<span class="text-sm text-slate-500">Impressions</span>
+<span class="text-sm font-bold text-green-500">+12%</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-linkedin h-full" style="width: 65%"></div>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-lg">
+<span class="material-symbols-outlined">auto_graph</span>
+</div>
+<h3 class="font-bold">Quick Stats</h3>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Posts</p>
+<p class="text-2xl font-bold">14</p>
+</div>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Reach</p>
+<p class="text-2xl font-bold">2.4k</p>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 mb-4">
+<div class="p-2 bg-primary/10 text-primary rounded-lg">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<h3 class="font-bold">AI Suggestions</h3>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Schedule a post for Saturday morning to maximize engagement with weekend readers.</p>
+<button class="w-full py-2 text-sm font-semibold border-2 border-primary/20 text-primary rounded-lg hover:bg-primary/5 transition-colors">Apply Tip</button>
+</div>
+</div>
+</main>
+</div>
+</body></html>
