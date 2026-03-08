@@ -49,7 +49,7 @@ Return ONLY the rewritten post text. No explanations, no labels, no quotes aroun
       "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
     },
     body: JSON.stringify({
-      model: "meta-llama/llama-3.1-8b-instruct:free",
+      model: "mistralai/mistral-small",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: content.trim() },
