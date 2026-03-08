@@ -46,9 +46,9 @@ export async function runScheduler(now = new Date()) {
       console.log(`  Publishing [${row.platform}]: "${row.content.slice(0, 60)}..."`);
       let postUrl: string | undefined;
       if (row.platform === "linkedin") {
-        postUrl = await postToLinkedIn({ content: row.content });
+        postUrl = await postToLinkedIn({ content: row.content, imageUrl: row.image_url });
       } else {
-        postUrl = await postToTwitter({ content: row.content });
+        postUrl = await postToTwitter({ content: row.content, imageUrl: row.image_url });
       }
 
       await supabaseAdmin
@@ -86,9 +86,9 @@ export async function debugPosts() {
       console.log(`  Force-publishing [${row.platform}]: "${row.content.slice(0, 60)}..."`);
       let postUrl: string | undefined;
       if (row.platform === "linkedin") {
-        postUrl = await postToLinkedIn({ content: row.content });
+        postUrl = await postToLinkedIn({ content: row.content, imageUrl: row.image_url });
       } else {
-        postUrl = await postToTwitter({ content: row.content });
+        postUrl = await postToTwitter({ content: row.content, imageUrl: row.image_url });
       }
       await supabaseAdmin
         .from("posts")
