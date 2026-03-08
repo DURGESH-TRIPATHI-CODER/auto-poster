@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
     },
     body: JSON.stringify({
-      model: "mistralai/mistral-7b-instruct:free",
+      model: "mistralai/mistral-7b-instruct",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: content.trim() },
