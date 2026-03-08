@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
     },
     body: JSON.stringify({
-      model: "mistralai/mistral-7b-instruct",
+      model: "mistralai/mistral-7b-instruct:free",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: content.trim() },
@@ -48,7 +48,12 @@ export async function POST(req: NextRequest) {
   if (!res.ok) {
     const err = await res.text();
     console.error("OpenRouter error:", err);
-    return NextResponse.json({ error: "AI enhancement failed" }, { status: 502 });
+    let message = "AI enhancement failed";
+    try {
+      const parsed = JSON.parse(err);
+      message = parsed?.error?.message ?? parsed?.message ?? message;
+    } catch {}
+    return NextResponse.json({ error: message }, { status: 502 });
   }
 
   const data = await res.json();
