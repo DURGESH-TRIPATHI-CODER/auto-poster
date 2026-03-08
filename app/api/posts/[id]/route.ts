@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseClient";
 import { createPostSchema } from "@/lib/validators";
-import { postToLinkedIn } from "@/lib/linkedinBot";
-import { postToTwitter } from "@/lib/twitterBot";
-import { sendPostPublishedEmail } from "@/lib/email";
 import type { PostRow } from "@/lib/types";
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
@@ -16,10 +13,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
   const { data, error } = await supabaseAdmin
     .from("posts")
-    .update({
-      ...parsed.data,
-      image_url: parsed.data.image_url ?? null
-    })
+    .update({ ...parsed.data, image_url: parsed.data.image_url ?? null })
     .eq("id", params.id)
     .select("*")
     .single();
@@ -34,6 +28,8 @@ export async function DELETE(_: Request, { params }: { params: { id: string } })
   return NextResponse.json({ ok: true });
 }
 
+// "Publish Now" — triggers GitHub Actions workflow_dispatch with force=true
+// Playwright cannot run on Netlify serverless; GitHub Actions handles all bot execution.
 export async function POST(_: Request, { params }: { params: { id: string } }) {
   const { data, error } = await supabaseAdmin
     .from("posts")
@@ -42,27 +38,43 @@ export async function POST(_: Request, { params }: { params: { id: string } }) {
     .single();
 
   if (error || !data) return NextResponse.json({ error: "Post not found" }, { status: 404 });
-  const post = data as PostRow;
 
-  try {
-    let postUrl: string | undefined;
-    if (post.platform === "linkedin") {
-      postUrl = await postToLinkedIn({ content: post.content });
-    } else {
-      postUrl = await postToTwitter({ content: post.content });
-    }
+  const pat = process.env.GITHUB_PAT;
+  const owner = process.env.GITHUB_REPO_OWNER;
+  const repo = process.env.GITHUB_REPO_NAME;
 
-    await supabaseAdmin
-      .from("posts")
-      .update({
-        published: post.repeat_weekly ? false : true,
-        last_published_at: new Date().toISOString(),
-      })
-      .eq("id", post.id);
-
-    sendPostPublishedEmail(post.platform, post.content, postUrl).catch(() => {});
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+  if (!pat || !owner || !repo) {
+    return NextResponse.json(
+      { error: "GITHUB_PAT, GITHUB_REPO_OWNER, GITHUB_REPO_NAME env vars are not set." },
+      { status: 500 }
+    );
   }
+
+  // Trigger the GitHub Actions workflow with force=true
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/actions/workflows/worker.yml/dispatches`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${pat}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ref: "main", inputs: { force: "true" } }),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    return NextResponse.json({ error: `GitHub dispatch failed: ${text}` }, { status: 500 });
+  }
+
+  // GitHub Actions will publish the post within ~30 seconds.
+  // Mark last_published_at optimistically so the UI reflects the action.
+  await supabaseAdmin
+    .from("posts")
+    .update({ last_published_at: new Date().toISOString() })
+    .eq("id", params.id);
+
+  return NextResponse.json({ ok: true, queued: true });
 }

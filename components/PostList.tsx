@@ -50,8 +50,11 @@ export function PostList({ initialPosts, title, published }: PostListProps) {
       const res = await fetch(`/api/posts/${id}`, { method: "POST" });
       if (res.ok) {
         setPublishedIds((cur) => ({ ...cur, [id]: true }));
-        await fetchPosts();
-        setTimeout(() => setPublishedIds((cur) => { const next = { ...cur }; delete next[id]; return next; }), 3000);
+        // GitHub Actions takes ~30s — keep "Queued" badge for 60s then refresh
+        setTimeout(async () => {
+          await fetchPosts();
+          setPublishedIds((cur) => { const next = { ...cur }; delete next[id]; return next; });
+        }, 60_000);
       } else {
         const data = await res.json().catch(() => ({}));
         alert("Publish failed: " + (data.error ?? "unknown error"));
@@ -129,7 +132,7 @@ export function PostList({ initialPosts, title, published }: PostListProps) {
                       : "bg-emerald-600 hover:bg-emerald-500"
                   }`}
                 >
-                  {publishing[post.id] ? "Posting…" : publishedIds[post.id] ? "✓ Published" : "Publish Now"}
+                  {publishing[post.id] ? "Triggering…" : publishedIds[post.id] ? "⏳ Queued (~30s)" : "Publish Now"}
                 </button>
               )}
             </div>
