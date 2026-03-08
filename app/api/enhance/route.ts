@@ -49,7 +49,7 @@ Return ONLY the rewritten post text. No explanations, no labels, no quotes aroun
       "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
     },
     body: JSON.stringify({
-      model: "mistralai/mistral-small",
+      model: "deepseek/deepseek-chat:free",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: content.trim() },
