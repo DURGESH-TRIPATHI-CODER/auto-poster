@@ -5,6 +5,12 @@ on:
     - cron: "*/5 * * * *"   # every 5 minutes
   workflow_dispatch:         # allow manual trigger from GitHub UI
 
+ name: Restore session
+  run: |
+    mkdir -p .sessions
+    echo "$LINKEDIN_SESSION" | base64 -d > .sessions/linkedin.json
+
+    
 jobs:
   run-worker:
     runs-on: ubuntu-latest
