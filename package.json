@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "worker": "tsx scripts/worker.ts"
+    "worker": "tsx scripts/worker.ts",
+    "session:linkedin": "tsx scripts/createSession.ts linkedin",
+    "session:twitter": "tsx scripts/createSession.ts twitter",
+    "session:both": "tsx scripts/createSession.ts both"
   },
   "dependencies": {
     "@netlify/plugin-nextjs": "^5.15.8",

@@ -2,22 +2,71 @@ name: autoposter-worker
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
-  workflow_dispatch:
+    - cron: "*/5 * * * *"   # every 5 minutes
+  workflow_dispatch:         # allow manual trigger from GitHub UI
 
 jobs:
   run-worker:
     runs-on: ubuntu-latest
+    timeout-minutes: 8       # kill if stuck
+
+    env:
+      # Supabase
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+
+      # Social credentials (fallback if session is expired)
+      LINKEDIN_EMAIL: ${{ secrets.LINKEDIN_EMAIL }}
+      LINKEDIN_PASSWORD: ${{ secrets.LINKEDIN_PASSWORD }}
+      X_EMAIL: ${{ secrets.X_EMAIL }}
+      X_PASSWORD: ${{ secrets.X_PASSWORD }}
+
+      # Email notifications
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      REMINDER_EMAIL: ${{ secrets.REMINDER_EMAIL }}
+
+      # Worker
+      WORKER_SECRET: ${{ secrets.WORKER_SECRET }}
+      WORKER_TIMEZONE: "Asia/Calcutta"
+      CI: "true"
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: "npm"
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm ci
 
-      - run: npx playwright install chromium
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium --with-deps
 
-      - run: npx tsx scripts/worker.ts
+      # Restore LinkedIn session from GitHub Secret (base64-encoded)
+      - name: Restore LinkedIn session
+        if: ${{ secrets.LINKEDIN_SESSION != '' }}
+        run: |
+          mkdir -p .sessions
+          echo "${{ secrets.LINKEDIN_SESSION }}" | base64 -d > .sessions/linkedin.json
+          echo "[session] LinkedIn session restored"
+
+      # Restore Twitter/X session from GitHub Secret (base64-encoded)
+      - name: Restore Twitter session
+        if: ${{ secrets.TWITTER_SESSION != '' }}
+        run: |
+          mkdir -p .sessions
+          echo "${{ secrets.TWITTER_SESSION }}" | base64 -d > .sessions/twitter.json
+          echo "[session] Twitter session restored"
+
+      - name: Run worker
+        run: npx tsx scripts/worker.ts --once
