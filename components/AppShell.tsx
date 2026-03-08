@@ -86,7 +86,7 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="mx-auto flex min-h-screen max-w-[1400px]">
+      <div className="flex min-h-screen w-full">
         <aside className={`flex flex-col overflow-hidden border-r border-zinc-800 bg-zinc-950 transition-all duration-300 ${sidebarOpen ? "w-64 p-4" : "w-0 p-0 border-r-0"}`}>
           <div className="mb-8 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
