@@ -26,6 +26,7 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
   const [preview, setPreview] = useState<{ url: string; name: string; index: number } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [enhancing, setEnhancing] = useState(false);
+  const [tone, setTone] = useState<"short" | "professional" | "casual" | "storytelling" | "viral">("short");
 
   useEffect(() => {
     setMounted(true);
@@ -118,7 +119,7 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
       const res = await fetch("/api/enhance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, platforms }),
+        body: JSON.stringify({ content, platforms, tone }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -216,6 +217,32 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
   return (
     <form onSubmit={onSubmit} className="space-y-6 card p-6">
       <h2 className="text-xl font-semibold">{initialPost ? "Edit Post" : "Create New Post"}</h2>
+
+      <div className="flex flex-wrap gap-2">
+        {(["short", "professional", "casual", "storytelling", "viral"] as const).map((t) => {
+          const labels: Record<string, string> = {
+            short: "✂ Short",
+            professional: "💼 Professional",
+            casual: "😊 Casual",
+            storytelling: "📖 Storytelling",
+            viral: "🔥 Viral Hook",
+          };
+          return (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTone(t)}
+              className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition border ${
+                tone === t
+                  ? "bg-primary text-white border-primary"
+                  : "bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-primary/50 hover:text-white"
+              }`}
+            >
+              {labels[t]}
+            </button>
+          );
+        })}
+      </div>
 
       <div className="relative">
         <textarea

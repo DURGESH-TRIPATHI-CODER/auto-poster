@@ -1,7 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 
+type Tone = "short" | "professional" | "casual" | "storytelling" | "viral";
+
+const toneRules: Record<Tone, string> = {
+  short:
+    "TONE — SHORT & CONCISE: Maximum 3 sentences. Every word must earn its place. Cut all filler. No intro, no outro. Get straight to the point. If it can be said in fewer words, say it in fewer words.",
+  professional:
+    "TONE — PROFESSIONAL: Authoritative but human. Write like a senior person sharing a hard-earned insight. No fluff, no motivational poster language. Structured thinking, clear point of view. Can be slightly longer but every sentence must add value.",
+  casual:
+    "TONE — CASUAL: Like you're texting a smart friend. Relaxed, direct, maybe a little unpolished — that's fine. Use contractions. Short lines. Can have a dry sense of humor. No formality at all.",
+  storytelling:
+    "TONE — STORYTELLING: Hook in the first line (make them stop scrolling). Then a short personal story or situation. End with one clear takeaway or lesson. Max 5-6 short paragraphs. Each paragraph = 1-2 lines.",
+  viral:
+    "TONE — VIRAL HOOK: The first line must be so good that people can't scroll past it. Use curiosity, contrast, or a bold statement. Short punchy lines throughout. Build tension then deliver the payoff. End with something memorable.",
+};
+
 export async function POST(req: NextRequest) {
-  const { content, platforms } = await req.json();
+  const { content, platforms, tone } = await req.json();
 
   if (!content || typeof content !== "string" || content.trim().length === 0) {
     return NextResponse.json({ error: "Content is required" }, { status: 400 });
@@ -18,28 +33,30 @@ export async function POST(req: NextRequest) {
 
   let platformNote = "";
   if (isTwitter && isLinkedIn) {
-    platformNote = "The post will be shared on both LinkedIn and X (Twitter). Keep it under 280 characters if possible, but prioritize quality.";
+    platformNote = "Platform: LinkedIn + X (Twitter). Keep it under 280 characters if possible, but prioritize quality.";
   } else if (isTwitter) {
-    platformNote = "The post is for X (Twitter). Keep it under 280 characters. Be punchy and concise.";
+    platformNote = "Platform: X (Twitter). Keep it under 280 characters. Be punchy and concise.";
   } else {
-    platformNote = "The post is for LinkedIn. Professional tone, can be longer, use relevant hashtags at the end.";
+    platformNote = "Platform: LinkedIn. Can be longer, add 3-5 relevant hashtags at the end.";
   }
 
-  const systemPrompt = `You are a ghostwriter who writes social media posts that sound exactly like a real human wrote them — casual, personal, and natural.
+  const selectedToneRule = toneRules[(tone as Tone) ?? "short"] ?? toneRules.short;
 
-STRICT RULES (never break these):
-- Write in first person, like a real person sharing their genuine thoughts
-- Use natural sentence flow — short sentences, fragments, even incomplete thoughts are fine
-- Vary sentence length. Mix short punchy lines with longer ones
+  const systemPrompt = `You are a ghostwriter who writes social media posts that sound exactly like a real human wrote them.
+
+BASE RULES (always apply):
+- Write in first person
+- Natural sentence flow — fragments and short lines are fine
 - NO buzzwords: never use "game-changer", "dive into", "leverage", "unlock", "empower", "elevate", "innovative", "cutting-edge", "delve", "crucial", "paramount", "foster", "pivotal", "seamless", "revolutionize"
-- NO AI patterns: no "In today's world", no "It's important to note", no "In conclusion", no "I hope this finds you well"
-- NO excessive punctuation or emojis — use them sparingly and only if natural
-- NO hype or salesy language — be genuine and conversational
-- Sound like a real professional sharing a real thought, not a marketer
+- NO AI patterns: no "In today's world", "It's important to note", "In conclusion", "I hope this finds you well"
+- NO excessive emojis — max 1-2 only if they feel natural
+- NO hype or salesy language
 - Keep the original meaning and key message
 - ${platformNote}
 
-Return ONLY the rewritten post text. No explanations, no labels, no quotes around it.`;
+${selectedToneRule}
+
+Return ONLY the rewritten post. No explanations, no labels, no quotes.`;
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -54,8 +71,8 @@ Return ONLY the rewritten post text. No explanations, no labels, no quotes aroun
         { role: "system", content: systemPrompt },
         { role: "user", content: content.trim() },
       ],
-      max_tokens: 500,
-      temperature: 0.7,
+      max_tokens: 600,
+      temperature: 0.75,
     }),
   });
 
