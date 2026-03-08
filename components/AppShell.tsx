@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 
-type NavKey = "dashboard" | "create-post" | "calendar" | "analytics" | "settings";
+type NavKey = "dashboard" | "create-post" | "calendar" | "analytics" | "drafts" | "settings";
 
 const navItems: Array<{ key: NavKey; href: string; label: string }> = [
   { key: "dashboard", href: "/dashboard", label: "Dashboard" },
   { key: "create-post", href: "/create-post", label: "Create Post" },
   { key: "calendar", href: "/calendar", label: "Calendar" },
   { key: "analytics", href: "/analytics", label: "Analytics" },
+  { key: "drafts", href: "/drafts", label: "Drafts" },
   { key: "settings", href: "/settings", label: "Settings" }
 ];
 
@@ -22,8 +24,14 @@ interface AppShellProps {
 }
 
 export function AppShell({ active, title, subtitle, children, action }: AppShellProps) {
-  const [collapsed, setCollapsed] = useState(false);
+  const router = useRouter();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [hovered, setHovered] = useState<NavKey | null>(null);
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
+  }
 
   function renderIcon(key: NavKey) {
     switch (key) {
@@ -59,6 +67,13 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
             <rect x="16" y="5" width="3" height="12" rx="1" />
           </svg>
         );
+      case "drafts":
+        return (
+          <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 4h16v16H4z" />
+            <path d="M8 8h8M8 12h8M8 16h5" />
+          </svg>
+        );
       case "settings":
         return (
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
@@ -70,10 +85,10 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-black">
       <div className="mx-auto flex min-h-screen max-w-[1400px]">
-        <aside className={`border-r border-slate-200 bg-white p-4 transition-all ${collapsed ? "w-20" : "w-64"}`}>
-          <div className={`mb-8 flex items-center ${collapsed ? "justify-between gap-2" : "justify-between"}`}>
+        <aside className={`flex flex-col overflow-hidden border-r border-zinc-800 bg-zinc-950 transition-all duration-300 ${sidebarOpen ? "w-64 p-4" : "w-0 p-0 border-r-0"}`}>
+          <div className="mb-8 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <span
                 className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold text-white transition ${
@@ -82,16 +97,16 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
               >
                 AP
               </span>
-              {!collapsed ? <span className="text-lg font-bold tracking-tight">AutoPoster</span> : null}
+              <span className="text-lg font-bold tracking-tight text-white">AutoPoster</span>
             </Link>
             <button
               type="button"
-              onClick={() => setCollapsed((value) => !value)}
-              className="rounded-md p-2 text-slate-500 hover:bg-slate-100"
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              onClick={() => setSidebarOpen(false)}
+              className="rounded-md p-2 text-zinc-400 hover:bg-zinc-800"
+              aria-label="Collapse sidebar"
             >
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
-                {collapsed ? <path d="m9 18 6-6-6-6" /> : <path d="m15 18-6-6 6-6" />}
+                <path d="m15 18-6-6 6-6" />
               </svg>
             </button>
           </div>
@@ -105,25 +120,53 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
                   onMouseEnter={() => setHovered(item.key)}
                   onMouseLeave={() => setHovered(null)}
                   className={`block rounded-xl px-3 py-2 text-sm font-medium transition ${
-                    isActive ? "bg-primary/10 text-primary" : "text-slate-600 hover:bg-slate-100"
+                    isActive ? "bg-primary/20 text-primary" : "text-zinc-400 hover:bg-zinc-800 hover:text-white"
                   }`}
                 >
-                  <span className={`flex items-center ${collapsed ? "justify-center" : "gap-2"}`}>
+                  <span className="flex items-center gap-2">
                     {renderIcon(item.key)}
-                    {!collapsed ? <span>{item.label}</span> : null}
+                    <span>{item.label}</span>
                   </span>
                 </a>
               );
             })}
           </nav>
+
+          <div className="mt-auto pt-8">
+            <button
+              onClick={logout}
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-zinc-500 hover:bg-zinc-800 hover:text-red-400 transition"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Logout
+            </button>
+          </div>
         </aside>
 
         <div className="flex flex-1 flex-col">
-          <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/95 px-4 py-4 backdrop-blur sm:px-6">
+          <header className="sticky top-0 z-20 border-b border-zinc-800 bg-black/95 px-4 py-4 backdrop-blur sm:px-6">
             <div className="flex items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-                <p className="text-sm text-slate-500">{subtitle}</p>
+              <div className="flex items-center gap-3">
+                {!sidebarOpen ? (
+                  <button
+                    type="button"
+                    onClick={() => setSidebarOpen(true)}
+                    className="rounded-md border border-zinc-700 p-2 text-zinc-400 hover:bg-zinc-800"
+                    aria-label="Open sidebar"
+                  >
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </button>
+                ) : null}
+                <div>
+                  <h1 className="text-2xl font-bold tracking-tight text-white">{title}</h1>
+                  <p className="text-sm text-zinc-500">{subtitle}</p>
+                </div>
               </div>
               <div>{action}</div>
             </div>

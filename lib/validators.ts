@@ -23,5 +23,6 @@ export function isDueNow(dayOfWeek: number, postTime: string, now = new Date()) 
   const [h, m] = postTime.split(":").map(Number);
   const scheduledMinutes = h * 60 + m;
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
-  return currentMinutes >= scheduledMinutes && currentMinutes < scheduledMinutes + 5;
+  // Allow overdue same-day publishing if the worker runs late.
+  return currentMinutes >= scheduledMinutes;
 }

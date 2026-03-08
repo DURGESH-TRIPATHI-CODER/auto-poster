@@ -2,7 +2,11 @@ import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { PostEditor } from "@/components/PostEditor";
 
-export default function CreatePostPage() {
+interface CreatePostPageProps {
+  searchParams?: { draftId?: string };
+}
+
+export default function CreatePostPage({ searchParams }: CreatePostPageProps) {
   return (
     <AppShell
       active="create-post"
@@ -14,7 +18,7 @@ export default function CreatePostPage() {
         </Link>
       }
     >
-      <PostEditor />
+      <PostEditor draftId={searchParams?.draftId} />
       <section className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4">
         <h2 className="text-sm font-semibold text-primary">Pro Tip</h2>
         <p className="mt-1 text-sm text-slate-600">Posts with visuals usually get better engagement. Add media before scheduling.</p>

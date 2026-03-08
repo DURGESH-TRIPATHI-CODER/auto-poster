@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-black text-white antialiased;
 }
 
 .container {
@@ -11,5 +11,5 @@ body {
 }
 
 .card {
-  @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  @apply rounded-2xl border border-zinc-800 bg-zinc-900 shadow-sm;
 }

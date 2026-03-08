@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ScheduleForm } from "@/components/ScheduleForm";
 import type { PostRow } from "@/lib/types";
 
 interface PostEditorProps {
   initialPost?: PostRow;
+  draftId?: string;
 }
 
-export function PostEditor({ initialPost }: PostEditorProps) {
+export function PostEditor({ initialPost, draftId }: PostEditorProps) {
   const router = useRouter();
   const [content, setContent] = useState(initialPost?.content ?? "");
-  const [imageUrl, setImageUrl] = useState<string | null>(initialPost?.image_url ?? null);
+  const [images, setImages] = useState<Array<{ name: string; url: string }>>(
+    initialPost?.image_url ? [{ name: "existing", url: initialPost.image_url }] : []
+  );
   const [postToLinkedIn, setPostToLinkedIn] = useState(initialPost ? initialPost.platform === "linkedin" : true);
   const [postToTwitter, setPostToTwitter] = useState(initialPost ? initialPost.platform === "twitter" : false);
   const [dayOfWeek, setDayOfWeek] = useState(initialPost?.day_of_week ?? 1);
@@ -20,26 +23,107 @@ export function PostEditor({ initialPost }: PostEditorProps) {
   const [repeatWeekly, setRepeatWeekly] = useState(initialPost?.repeat_weekly ?? true);
   const [status, setStatus] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+  const [preview, setPreview] = useState<{ url: string; name: string; index: number } | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  async function onImageSelect(file: File) {
-    setSelectedFileName(file.name);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || initialPost || !draftId) return;
+    const drafts = JSON.parse(localStorage.getItem("autoposter_drafts") || "[]") as Array<{
+      id: string;
+      content: string;
+      imageUrl: string | null;
+      postToLinkedIn: boolean;
+      postToTwitter: boolean;
+      dayOfWeek: number;
+      postTime: string;
+      repeatWeekly: boolean;
+    }>;
+    const selected = drafts.find((item) => item.id === draftId);
+    if (!selected) return;
+
+    setContent(selected.content ?? "");
+    setImages(selected.imageUrl ? [{ name: "draft", url: selected.imageUrl }] : []);
+    setPostToLinkedIn(Boolean(selected.postToLinkedIn));
+    setPostToTwitter(Boolean(selected.postToTwitter));
+    setDayOfWeek(selected.dayOfWeek ?? 1);
+    setPostTime((selected.postTime ?? "09:00").slice(0, 5));
+    setRepeatWeekly(selected.repeatWeekly ?? true);
+    setStatus("Draft loaded");
+  }, [mounted, initialPost, draftId]);
+
+  function getNextScheduledDate(selectedDay: number, time: string) {
+    const now = new Date();
+    const [hours, minutes] = time.split(":").map(Number);
+    const candidate = new Date(now);
+    const dayDelta = (selectedDay - now.getDay() + 7) % 7;
+    candidate.setDate(now.getDate() + dayDelta);
+    candidate.setHours(hours, minutes, 0, 0);
+    if (candidate <= now) candidate.setDate(candidate.getDate() + 7);
+    return candidate;
+  }
+
+  function formatScheduledDate(date: Date) {
+    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const hour24 = date.getHours();
+    const minute = date.getMinutes().toString().padStart(2, "0");
+    const ampm = hour24 >= 12 ? "PM" : "AM";
+    const hour12 = ((hour24 + 11) % 12) + 1;
+    return `${days[date.getDay()]}, ${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}, ${hour12
+      .toString()
+      .padStart(2, "0")}:${minute} ${ampm}`;
+  }
+
+  const scheduledLabel = useMemo(() => {
+    if (!mounted) return "Calculating...";
+    return formatScheduledDate(getNextScheduledDate(dayOfWeek, postTime));
+  }, [mounted, dayOfWeek, postTime]);
+
+  function saveDraft() {
+    const id = draftId ?? crypto.randomUUID();
+    const draft = {
+      id,
+      content,
+      imageUrl: images[0]?.url ?? null,
+      postToLinkedIn,
+      postToTwitter,
+      dayOfWeek,
+      postTime,
+      repeatWeekly,
+      createdAt: new Date().toISOString()
+    };
+
+    const current = JSON.parse(localStorage.getItem("autoposter_drafts") || "[]");
+    const next = [draft, ...current.filter((item: { id: string }) => item.id !== id)];
+    localStorage.setItem("autoposter_drafts", JSON.stringify(next));
+    setStatus(draftId ? "Draft updated" : "Draft saved");
+  }
+
+  async function onFilesSelect(files: FileList) {
     setUploading(true);
     setStatus(null);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/upload", { method: "POST", body: formData });
-      const payload = await res.json();
-      if (!res.ok) {
-        setStatus(payload.error || "Image upload failed");
-        return;
+    for (const file of Array.from(files)) {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const payload = await res.json();
+        if (!res.ok) {
+          setStatus(payload.error || "Image upload failed");
+          continue;
+        }
+        setImages((prev) => [...prev, { name: file.name, url: payload.url }]);
+      } catch {
+        setStatus("Upload failed for " + file.name);
       }
-      setImageUrl(payload.url);
-      setStatus("Image uploaded");
-    } finally {
-      setUploading(false);
     }
+    setUploading(false);
+    const input = document.getElementById("post-image") as HTMLInputElement | null;
+    if (input) input.value = "";
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -61,7 +145,7 @@ export function PostEditor({ initialPost }: PostEditorProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content,
-            image_url: imageUrl,
+            image_url: images[0]?.url ?? null,
             platform: platforms[0],
             day_of_week: dayOfWeek,
             post_time: postTime,
@@ -73,7 +157,7 @@ export function PostEditor({ initialPost }: PostEditorProps) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             content,
-            image_url: imageUrl,
+            image_url: images[0]?.url ?? null,
             platforms,
             day_of_week: dayOfWeek,
             post_time: postTime,
@@ -85,6 +169,12 @@ export function PostEditor({ initialPost }: PostEditorProps) {
     if (!response.ok) {
       setStatus(payload.error || "Failed to create post");
       return;
+    }
+
+    if (draftId) {
+      const current = JSON.parse(localStorage.getItem("autoposter_drafts") || "[]");
+      const next = current.filter((item: { id: string }) => item.id !== draftId);
+      localStorage.setItem("autoposter_drafts", JSON.stringify(next));
     }
 
     setStatus(isEditing ? "Post updated" : "Post scheduled");
@@ -99,16 +189,16 @@ export function PostEditor({ initialPost }: PostEditorProps) {
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
-        className="h-36 w-full rounded-xl border border-slate-200 p-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="h-36 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-4 text-sm text-white placeholder-zinc-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         placeholder="Write your post..."
         required
       />
 
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-slate-700">Media Upload</p>
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-zinc-300">Media Upload</p>
         <label
           htmlFor="post-image"
-          className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center transition hover:border-primary/40 hover:bg-primary/5"
+          className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-zinc-700 bg-zinc-800/50 p-8 text-center transition hover:border-primary/40 hover:bg-primary/5"
         >
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2">
@@ -118,20 +208,62 @@ export function PostEditor({ initialPost }: PostEditorProps) {
             </svg>
           </span>
           <div>
-            <p className="text-sm font-semibold text-slate-800">Click to upload or drag and drop</p>
-            <p className="text-xs text-slate-500">PNG, JPG or GIF (max 10MB)</p>
+            <p className={`text-sm font-semibold ${uploading ? "text-primary" : "text-zinc-200"}`}>
+              {uploading ? "Uploading..." : "Click to upload or drag and drop"}
+            </p>
+            <p className="text-xs text-zinc-500">PNG, JPG or GIF (max 10MB) — multiple allowed</p>
           </div>
-          {selectedFileName ? <p className="text-xs font-medium text-primary">{selectedFileName}</p> : null}
         </label>
         <input
           id="post-image"
           type="file"
           accept="image/*"
-          onChange={(e) => e.target.files?.[0] && onImageSelect(e.target.files[0])}
+          multiple
+          onChange={(e) => e.target.files && e.target.files.length > 0 && onFilesSelect(e.target.files)}
           className="hidden"
         />
-        {uploading ? <p className="text-sm text-slate-600">Uploading image...</p> : null}
-        {imageUrl ? <p className="text-sm text-emerald-600">Image uploaded and ready.</p> : null}
+        {images.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setImages([])}
+              className="flex items-center gap-1.5 rounded-lg border border-red-800 bg-red-950 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-900 transition"
+            >
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+              </svg>
+              Remove all
+            </button>
+            {images.map((img, i) => (
+              <div key={img.url} className="flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 shadow-sm">
+                <button
+                  type="button"
+                  onClick={() => setPreview({ url: img.url, name: img.name, index: i })}
+                  className="flex items-center gap-1.5 hover:text-primary transition"
+                  title="Preview image"
+                >
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" />
+                    <circle cx="9" cy="13" r="2" />
+                    <path d="m21 15-5-5L5 21" />
+                  </svg>
+                  <span className="max-w-[120px] truncate">{img.name}</span>
+                </button>
+                {i === 0 && <span className="rounded bg-primary/20 px-1 text-[10px] font-semibold text-primary">main</span>}
+                <button
+                  type="button"
+                  onClick={() => setImages((prev) => prev.filter((_, idx) => idx !== i))}
+                  className="ml-1 rounded text-zinc-500 hover:text-red-400 transition"
+                  aria-label="Remove image"
+                >
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <ScheduleForm
@@ -147,13 +279,80 @@ export function PostEditor({ initialPost }: PostEditorProps) {
         onRepeatWeeklyChange={setRepeatWeekly}
       />
 
+      <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-3 text-sm text-zinc-300">
+        Scheduled for:{" "}
+        <span className="font-semibold text-white">{scheduledLabel}</span>
+      </div>
+
       {status ? <p className="text-sm text-slate-700">{status}</p> : null}
+
+      {preview && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4"
+          onClick={() => setPreview(null)}
+        >
+          <div
+            className="relative flex max-h-[90vh] max-w-3xl w-full flex-col rounded-2xl bg-zinc-900 shadow-2xl overflow-hidden border border-zinc-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3 border-b border-zinc-700 px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z" />
+                  <circle cx="9" cy="13" r="2" />
+                  <path d="m21 15-5-5L5 21" />
+                </svg>
+                <span className="truncate text-sm font-semibold text-white">{preview.name}</span>
+                {preview.index === 0 && (
+                  <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">main</span>
+                )}
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImages((prev) => prev.filter((_, idx) => idx !== preview.index));
+                    setPreview(null);
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-800 bg-red-950 px-3 py-1.5 text-xs font-medium text-red-400 hover:bg-red-900 transition"
+                >
+                  <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                  Remove
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreview(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-700 text-zinc-400 hover:bg-zinc-700 transition"
+                  aria-label="Close preview"
+                >
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M18 6 6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Image */}
+            <div className="flex items-center justify-center bg-zinc-950 p-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={preview.url}
+                alt={preview.name}
+                className="max-h-[70vh] max-w-full rounded-xl object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-3">
         <button type="submit" className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/90">
           Schedule Post
         </button>
-        <button type="button" className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700">
+        <button type="button" onClick={saveDraft} className="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700">
           Save Draft
         </button>
       </div>

@@ -2,7 +2,7 @@ import { addDays } from "date-fns";
 import { supabaseAdmin } from "./supabaseClient";
 import { postToLinkedIn } from "./linkedinBot";
 import { postToTwitter } from "./twitterBot";
-import { sendNoScheduleReminder } from "./email";
+import { sendNoScheduleReminder, sendPostPublishedEmail } from "./email";
 import { isDueNow } from "./validators";
 import type { PostRow } from "./types";
 
@@ -17,30 +17,92 @@ export async function runScheduler(now = new Date()) {
   const { data, error } = await supabaseAdmin.from("posts").select("*").eq("published", false);
   if (error) throw error;
 
+  const rows = (data ?? []) as PostRow[];
   let publishedCount = 0;
+  let skippedCount = 0;
 
-  for (const row of (data ?? []) as PostRow[]) {
-    if (!isDueNow(row.day_of_week, row.post_time, now)) continue;
-    if (row.repeat_weekly && recentlyPublished(row, now)) continue;
+  const details: Array<{ platform: string; content: string; status: string }> = [];
 
-    if (row.platform === "linkedin") {
-      await postToLinkedIn({ content: row.content });
-    } else {
-      await postToTwitter({ content: row.content });
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  console.log(`  Current time: ${days[now.getDay()]} ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`);
+  console.log(`  Posts pending in DB: ${rows.length}`);
+
+  for (const row of rows) {
+    const due = isDueNow(row.day_of_week, row.post_time, now);
+    const recent = row.repeat_weekly && recentlyPublished(row, now);
+
+    if (!due) {
+      skippedCount++;
+      details.push({ platform: row.platform, content: row.content, status: `not due (scheduled ${days[row.day_of_week]} ${row.post_time.slice(0,5)})` });
+      continue;
+    }
+    if (recent) {
+      skippedCount++;
+      details.push({ platform: row.platform, content: row.content, status: "recently published, skip" });
+      continue;
     }
 
-    await supabaseAdmin
-      .from("posts")
-      .update({
-        published: row.repeat_weekly ? false : true,
-        last_published_at: now.toISOString()
-      })
-      .eq("id", row.id);
+    try {
+      console.log(`  Publishing [${row.platform}]: "${row.content.slice(0, 60)}..."`);
+      let postUrl: string | undefined;
+      if (row.platform === "linkedin") {
+        postUrl = await postToLinkedIn({ content: row.content });
+      } else {
+        postUrl = await postToTwitter({ content: row.content });
+      }
 
-    publishedCount += 1;
+      await supabaseAdmin
+        .from("posts")
+        .update({
+          published: row.repeat_weekly ? false : true,
+          last_published_at: now.toISOString()
+        })
+        .eq("id", row.id);
+
+      publishedCount++;
+      details.push({ platform: row.platform, content: row.content, status: "published ✓" });
+      sendPostPublishedEmail(row.platform, row.content, postUrl).catch(() => {});
+    } catch (err) {
+      console.error(`  [scheduler] post failed [${row.platform}]`, err);
+      details.push({ platform: row.platform, content: row.content, status: `FAILED: ${(err as Error).message}` });
+      continue;
+    }
   }
 
-  return { checked: data?.length ?? 0, published: publishedCount };
+  return { checked: rows.length, published: publishedCount, skipped: skippedCount, details };
+}
+
+/** Force-publishes all pending (unpublished) posts right now, ignoring schedule. */
+export async function debugPosts() {
+  const { data, error } = await supabaseAdmin.from("posts").select("*").eq("published", false);
+  if (error) throw error;
+
+  const rows = (data ?? []) as PostRow[];
+  console.log(`  Force mode: ${rows.length} pending post(s) found`);
+
+  let published = 0;
+  for (const row of rows) {
+    try {
+      console.log(`  Force-publishing [${row.platform}]: "${row.content.slice(0, 60)}..."`);
+      let postUrl: string | undefined;
+      if (row.platform === "linkedin") {
+        postUrl = await postToLinkedIn({ content: row.content });
+      } else {
+        postUrl = await postToTwitter({ content: row.content });
+      }
+      await supabaseAdmin
+        .from("posts")
+        .update({ published: row.repeat_weekly ? false : true, last_published_at: new Date().toISOString() })
+        .eq("id", row.id);
+      published++;
+      sendPostPublishedEmail(row.platform, row.content, postUrl).catch(() => {});
+      console.log(`  ✓ Published`);
+    } catch (err) {
+      console.error(`  ✗ Failed [${row.platform}]:`, err);
+    }
+  }
+
+  return { message: `Force-published ${published}/${rows.length} posts` };
 }
 
 export async function runWeeklyReminder(now = new Date()) {
