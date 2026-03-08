@@ -25,6 +25,7 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<{ url: string; name: string; index: number } | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [enhancing, setEnhancing] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -101,6 +102,36 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
     const next = [draft, ...current.filter((item: { id: string }) => item.id !== id)];
     localStorage.setItem("autoposter_drafts", JSON.stringify(next));
     setStatus(draftId ? "Draft updated" : "Draft saved");
+  }
+
+  async function enhanceContent() {
+    if (!content.trim()) {
+      setStatus("Write something first before enhancing.");
+      return;
+    }
+    setEnhancing(true);
+    setStatus(null);
+    const platforms: string[] = [];
+    if (postToLinkedIn) platforms.push("linkedin");
+    if (postToTwitter) platforms.push("twitter");
+    try {
+      const res = await fetch("/api/enhance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, platforms }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus(data.error || "Enhancement failed");
+      } else {
+        setContent(data.enhanced);
+        setStatus("Content enhanced by AI");
+      }
+    } catch {
+      setStatus("Enhancement request failed");
+    } finally {
+      setEnhancing(false);
+    }
   }
 
   async function onFilesSelect(files: FileList) {
@@ -186,13 +217,38 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
     <form onSubmit={onSubmit} className="space-y-6 card p-6">
       <h2 className="text-xl font-semibold">{initialPost ? "Edit Post" : "Create New Post"}</h2>
 
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        className="h-36 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-4 text-sm text-white placeholder-zinc-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        placeholder="Write your post..."
-        required
-      />
+      <div className="relative">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          className="h-36 w-full rounded-xl border border-zinc-700 bg-zinc-800 p-4 text-sm text-white placeholder-zinc-500 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+          placeholder="Write your post..."
+          required
+        />
+        <button
+          type="button"
+          onClick={enhanceContent}
+          disabled={enhancing}
+          className="absolute bottom-3 right-3 flex items-center gap-1.5 rounded-lg bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary transition hover:bg-primary/25 disabled:opacity-50 disabled:cursor-not-allowed border border-primary/30"
+          title="Enhance with Mistral AI"
+        >
+          {enhancing ? (
+            <>
+              <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+              </svg>
+              Enhancing...
+            </>
+          ) : (
+            <>
+              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
+              </svg>
+              Enhance with AI
+            </>
+          )}
+        </button>
+      </div>
 
       <div className="space-y-3">
         <p className="text-sm font-medium text-zinc-300">Media Upload</p>
