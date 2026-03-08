@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST() {
   const response = NextResponse.json({ ok: true });
-  response.cookies.set("autoposter_auth", "", {
+  response.cookies.set("narada_auth", "", {
     httpOnly: true,
     path: "/",
     maxAge: 0,

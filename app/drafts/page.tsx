@@ -22,14 +22,14 @@ export default function DraftsPage() {
   const [drafts, setDrafts] = useState<DraftItem[]>([]);
 
   useEffect(() => {
-    const items = JSON.parse(localStorage.getItem("autoposter_drafts") || "[]") as DraftItem[];
+    const items = JSON.parse(localStorage.getItem("narada_drafts") || "[]") as DraftItem[];
     setDrafts(items);
   }, []);
 
   function removeDraft(id: string) {
     const next = drafts.filter((d) => d.id !== id);
     setDrafts(next);
-    localStorage.setItem("autoposter_drafts", JSON.stringify(next));
+    localStorage.setItem("narada_drafts", JSON.stringify(next));
   }
 
   return (

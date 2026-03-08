@@ -17,7 +17,7 @@ async function downloadToTemp(url: string): Promise<string> {
   if (!res.ok) throw new Error(`Failed to download image: ${res.status}`);
   const buffer = Buffer.from(await res.arrayBuffer());
   const ext = url.split("?")[0].split(".").pop() ?? "jpg";
-  const tmpPath = path.join(os.tmpdir(), `autoposter-li-${Date.now()}.${ext}`);
+  const tmpPath = path.join(os.tmpdir(), `narada-li-${Date.now()}.${ext}`);
   fs.writeFileSync(tmpPath, buffer);
   return tmpPath;
 }

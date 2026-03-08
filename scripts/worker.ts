@@ -56,14 +56,14 @@ async function runReminderJob() {
 async function main() {
   if (forceNow) {
     // Force mode: publish everything now, ignore schedule
-    console.log("AutoPoster worker — FORCE MODE");
+    console.log("Narada worker — FORCE MODE");
     await runPublishJob();
     return;
   }
 
   if (runOnce) {
     // GitHub Actions mode: run publish + optional reminder, then exit
-    console.log("AutoPoster worker — ONE-SHOT MODE (CI)");
+    console.log("Narada worker — ONE-SHOT MODE (CI)");
     await runPublishJob();
 
     // Also run weekly reminder check if it's Sunday between 17:00–19:00 IST
@@ -81,7 +81,7 @@ async function main() {
   // Local continuous mode: use cron
   cron.schedule("*/5 * * * *", runPublishJob, { timezone });
   cron.schedule("0 18 * * 0", runReminderJob, { timezone });
-  console.log(`AutoPoster worker started (${timezone})`);
+  console.log(`Narada worker started (${timezone})`);
   await runPublishJob(); // run immediately on start
 }
 

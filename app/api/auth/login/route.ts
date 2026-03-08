@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   }
 
   const response = NextResponse.json({ ok: true, email: user.email, role: user.role });
-  response.cookies.set("autoposter_auth", user.email, {
+  response.cookies.set("narada_auth", user.email, {
     httpOnly: true,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",

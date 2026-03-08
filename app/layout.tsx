@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "AutoPoster",
+  title: "Narada",
   description: "Personal social auto-poster for LinkedIn and X"
 };
 

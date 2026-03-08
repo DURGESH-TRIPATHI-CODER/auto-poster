@@ -24,7 +24,7 @@ async function main() {
   fs.mkdirSync(PROFILE_DIR, { recursive: true });
 
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("  AutoPoster — LinkedIn Session Generator");
+  console.log("  Narada — LinkedIn Session Generator");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("1. A Chrome window will open.");
   console.log("2. Log in to LinkedIn (complete any 2FA if asked).");

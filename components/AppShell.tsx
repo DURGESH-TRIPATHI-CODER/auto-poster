@@ -97,7 +97,7 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
               >
                 AP
               </span>
-              <span className="text-lg font-bold tracking-tight text-white">AutoPoster</span>
+              <span className="text-lg font-bold tracking-tight text-white">Narada</span>
             </Link>
             <button
               type="button"

@@ -8,7 +8,7 @@ export function middleware(req: NextRequest) {
   const isPublic = PUBLIC_PATHS.some((p) => pathname.startsWith(p));
   if (isPublic) return NextResponse.next();
 
-  const auth = req.cookies.get("autoposter_auth");
+  const auth = req.cookies.get("narada_auth");
   if (!auth?.value) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/login";

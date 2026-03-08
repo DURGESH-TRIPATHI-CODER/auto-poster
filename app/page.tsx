@@ -9,7 +9,7 @@ export default function HomePage() {
         <header className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-950 px-6 py-4">
           <div className="flex items-center gap-3">
             <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5048e5] text-sm font-bold text-white shadow-lg shadow-[#5048e5]/30">AP</span>
-            <span className="text-lg font-bold tracking-tight text-white">AutoPoster</span>
+            <span className="text-lg font-bold tracking-tight text-white">Narada</span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">
@@ -40,7 +40,7 @@ export default function HomePage() {
               </span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-base text-zinc-400 leading-relaxed">
-              AutoPoster schedules and auto-publishes your LinkedIn and X content using browser automation.
+              Narada schedules and auto-publishes your LinkedIn and X content using browser automation.
               Write once, post everywhere — on your schedule, every week.
             </p>
             <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
@@ -95,7 +95,7 @@ export default function HomePage() {
               },
               {
                 step: "03",
-                title: "AutoPoster publishes",
+                title: "Narada publishes",
                 desc: "The worker runs every 5 min and publishes your posts right on time via browser automation.",
               },
             ].map((s) => (
@@ -166,7 +166,7 @@ export default function HomePage() {
               href="/login"
               className="mt-8 inline-block rounded-xl bg-[#5048e5] px-8 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#5048e5]/30 hover:bg-[#4338ca] transition-colors"
             >
-              Sign In to AutoPoster →
+              Sign In to Narada →
             </Link>
           </div>
         </section>
@@ -199,7 +199,7 @@ export default function HomePage() {
         </section>
 
         <footer className="flex items-center justify-between border-t border-zinc-900 pt-6 pb-4 text-xs text-zinc-700">
-          <span>AutoPoster — personal social media automation</span>
+          <span>Narada — personal social media automation</span>
           <Link href="/login" className="hover:text-zinc-500 transition-colors">Sign In</Link>
         </footer>
       </div>

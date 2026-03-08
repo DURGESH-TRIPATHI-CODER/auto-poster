@@ -36,7 +36,7 @@ export default function SettingsPage() {
       <section className="card mt-6 overflow-hidden">
         <div className="border-b border-slate-200 p-6">
           <h2 className="text-lg font-semibold">Email Notifications</h2>
-          <p className="text-sm text-slate-500">Control alerts and reports from AutoPoster.</p>
+          <p className="text-sm text-slate-500">Control alerts and reports from Narada.</p>
         </div>
         <div className="space-y-4 p-6">
           <label className="flex items-center justify-between rounded-xl border border-slate-200 p-4">

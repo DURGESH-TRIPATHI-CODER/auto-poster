@@ -47,7 +47,7 @@ export default function LoginPage() {
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#5048e5] text-base font-black text-white shadow-lg shadow-[#5048e5]/30">
             AP
           </span>
-          <h1 className="text-2xl font-black tracking-tight text-white">AutoPoster</h1>
+          <h1 className="text-2xl font-black tracking-tight text-white">Narada</h1>
           <p className="text-sm text-zinc-500">Sign in to your account</p>
         </div>
 

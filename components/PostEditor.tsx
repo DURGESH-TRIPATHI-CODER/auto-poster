@@ -33,7 +33,7 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
 
   useEffect(() => {
     if (!mounted || initialPost || !draftId) return;
-    const drafts = JSON.parse(localStorage.getItem("autoposter_drafts") || "[]") as Array<{
+    const drafts = JSON.parse(localStorage.getItem("narada_drafts") || "[]") as Array<{
       id: string;
       content: string;
       imageUrl: string | null;
@@ -98,9 +98,9 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
       createdAt: new Date().toISOString()
     };
 
-    const current = JSON.parse(localStorage.getItem("autoposter_drafts") || "[]");
+    const current = JSON.parse(localStorage.getItem("narada_drafts") || "[]");
     const next = [draft, ...current.filter((item: { id: string }) => item.id !== id)];
-    localStorage.setItem("autoposter_drafts", JSON.stringify(next));
+    localStorage.setItem("narada_drafts", JSON.stringify(next));
     setStatus(draftId ? "Draft updated" : "Draft saved");
   }
 
@@ -203,9 +203,9 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
     }
 
     if (draftId) {
-      const current = JSON.parse(localStorage.getItem("autoposter_drafts") || "[]");
+      const current = JSON.parse(localStorage.getItem("narada_drafts") || "[]");
       const next = current.filter((item: { id: string }) => item.id !== draftId);
-      localStorage.setItem("autoposter_drafts", JSON.stringify(next));
+      localStorage.setItem("narada_drafts", JSON.stringify(next));
     }
 
     setStatus(isEditing ? "Post updated" : "Post scheduled");

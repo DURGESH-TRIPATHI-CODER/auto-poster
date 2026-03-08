@@ -1,4 +1,4 @@
-name: autoposter-worker
+name: narada-worker
 
 on:
   schedule:

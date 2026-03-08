@@ -24,7 +24,7 @@ async function main() {
   fs.mkdirSync(PROFILE_DIR, { recursive: true });
 
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-  console.log("  AutoPoster — X (Twitter) Session Generator");
+  console.log("  Narada — X (Twitter) Session Generator");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("1. A Chrome window will open.");
   console.log("2. Log in to X (handle any 2FA/challenge if asked).");
