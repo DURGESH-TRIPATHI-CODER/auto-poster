@@ -116,7 +116,7 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
               return (
                 <a
                   key={item.key}
-                  href={item.href}
+                  href={item.href as string}
                   onMouseEnter={() => setHovered(item.key)}
                   onMouseLeave={() => setHovered(null)}
                   className={`block rounded-xl px-3 py-2 text-sm font-medium transition ${

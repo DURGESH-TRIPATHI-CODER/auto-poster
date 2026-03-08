@@ -185,7 +185,7 @@ export default function HomePage() {
             ].map((item) => (
               <Link
                 key={item.href}
-                href={item.href}
+                href={item.href as string}
                 className="group flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-950 px-5 py-4 hover:border-[#5048e5]/50 hover:bg-[#5048e5]/5 transition-all"
               >
                 <div>
