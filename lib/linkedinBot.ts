@@ -1,5 +1,4 @@
 import { chromium } from "playwright";
-import { saveSession, loadSessionOptions, clearSession, sessionExists } from "./session";
 
 interface LinkedInArgs {
   content: string;
@@ -9,68 +8,29 @@ function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-async function loginLinkedIn(page: import("playwright").Page) {
-  const email = process.env.LINKEDIN_EMAIL || "";
-  const password = process.env.LINKEDIN_PASSWORD || "";
-  if (!email || !password) throw new Error("Missing LINKEDIN_EMAIL or LINKEDIN_PASSWORD in environment.");
-
-  await page.goto("https://www.linkedin.com/login", { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.fill("#username", email);
-  await delay(400);
-  await page.fill("#password", password);
-  await delay(400);
-  await page.click("button[type='submit']");
-  await page.waitForURL(/linkedin\.com\/(feed|checkpoint|dashboard)/, { timeout: 30_000 }).catch(() => null);
-  await delay(2000);
-}
-
 export async function postToLinkedIn({ content }: LinkedInArgs): Promise<string | undefined> {
   const browser = await chromium.launch({
     headless: true,
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-blink-features=AutomationControlled",
-      "--disable-infobars",
-      "--window-size=1280,800",
-      "--disable-dev-shm-usage",
-    ],
+    args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
   });
 
-  const contextOptions = {
+  const context = await browser.newContext({
+    storageState: ".sessions/linkedin.json",
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    viewport: { width: 1280, height: 800 } as const,
+    viewport: { width: 1280, height: 800 },
     locale: "en-US",
-    timezoneId: "Asia/Kolkata",
-    extraHTTPHeaders: { "Accept-Language": "en-US,en;q=0.9" },
-    ...loadSessionOptions("linkedin"),
-  };
-
-  const context = await browser.newContext(contextOptions);
-  await context.addInitScript(() => {
-    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
   });
+
   const page = await context.newPage();
 
   try {
-    // Go to feed — if session is valid we'll land there directly
     await page.goto("https://www.linkedin.com/feed/", { waitUntil: "domcontentloaded", timeout: 60_000 });
     await delay(2000);
 
-    // If redirected to login, session expired — log in fresh
+    // If session is invalid, bail out with a clear error
     if (page.url().includes("/login") || page.url().includes("/authwall")) {
-      console.log("  [linkedin] Session expired, logging in...");
-      clearSession("linkedin");
-      await loginLinkedIn(page);
-      if (!page.url().includes("/feed")) {
-        await page.goto("https://www.linkedin.com/feed/", { waitUntil: "domcontentloaded", timeout: 30_000 });
-        await delay(2000);
-      }
-      await saveSession(context, "linkedin");
-    } else if (!sessionExists("linkedin")) {
-      // First successful load — save session for next time
-      await saveSession(context, "linkedin");
+      throw new Error("LinkedIn session expired — re-run loginLinkedIn.ts and update LINKEDIN_SESSION secret.");
     }
 
     // Click "Start a post"
@@ -93,7 +53,7 @@ export async function postToLinkedIn({ content }: LinkedInArgs): Promise<string 
     await page.keyboard.type(content, { delay: 30 });
     await delay(800);
 
-    // Click Post button scoped to modal
+    // Click Post button
     const postButton = modal.locator(
       "button.share-actions__primary-action, button[data-control-name='share.sharebox_post_button']"
     ).first();
@@ -111,7 +71,7 @@ export async function postToLinkedIn({ content }: LinkedInArgs): Promise<string 
 
     await delay(5000);
 
-    // Try to capture the URL of the just-published post
+    // Try to capture the URL of the published post
     let postUrl: string | undefined;
     try {
       const postLink = page.locator('a[href*="/feed/update/"]').first();
