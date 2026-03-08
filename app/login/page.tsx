@@ -45,7 +45,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="mb-8 flex flex-col items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#5048e5] text-base font-black text-white shadow-lg shadow-[#5048e5]/30">
-            AP
+            NA
           </span>
           <h1 className="text-2xl font-black tracking-tight text-white">Narada</h1>
           <p className="text-sm text-zinc-500">Sign in to your account</p>

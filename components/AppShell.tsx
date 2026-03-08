@@ -95,7 +95,7 @@ export function AppShell({ active, title, subtitle, children, action }: AppShell
                   hovered ? "bg-primary shadow-lg shadow-primary/20" : "bg-primary/90"
                 }`}
               >
-                AP
+                NA
               </span>
               <span className="text-lg font-bold tracking-tight text-white">Narada</span>
             </Link>

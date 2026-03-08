@@ -8,7 +8,7 @@ export default function HomePage() {
         {/* Navbar */}
         <header className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-950 px-6 py-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5048e5] text-sm font-bold text-white shadow-lg shadow-[#5048e5]/30">AP</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#5048e5] text-sm font-bold text-white shadow-lg shadow-[#5048e5]/30">NA</span>
             <span className="text-lg font-bold tracking-tight text-white">Narada</span>
           </div>
           <div className="flex items-center gap-3">
