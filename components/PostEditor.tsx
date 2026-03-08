@@ -121,15 +121,17 @@ export function PostEditor({ initialPost, draftId }: PostEditorProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ content, platforms, tone }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data: { error?: string; enhanced?: string } = {};
+      try { data = JSON.parse(text); } catch { setStatus("AI returned invalid response"); return; }
       if (!res.ok) {
         setStatus(data.error || "Enhancement failed");
       } else {
-        setContent(data.enhanced);
+        setContent(data.enhanced ?? "");
         setStatus("Content enhanced by AI");
       }
-    } catch {
-      setStatus("Enhancement request failed");
+    } catch (err) {
+      setStatus("Network error: " + (err instanceof Error ? err.message : String(err)));
     } finally {
       setEnhancing(false);
     }
