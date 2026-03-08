@@ -50,16 +50,10 @@ jobs:
       - name: Install Playwright Chromium
         run: npx playwright install chromium --with-deps
 
-      - name: Restore LinkedIn session
-        if: ${{ secrets.LINKEDIN_SESSION != '' }}
+      - name: Restore sessions
         run: |
           mkdir -p .sessions
           echo "${{ secrets.LINKEDIN_SESSION }}" | base64 -d > .sessions/linkedin.json
-
-      - name: Restore Twitter session
-        if: ${{ secrets.TWITTER_SESSION != '' }}
-        run: |
-          mkdir -p .sessions
           echo "${{ secrets.TWITTER_SESSION }}" | base64 -d > .sessions/twitter.json
 
       - name: Run worker (force)
