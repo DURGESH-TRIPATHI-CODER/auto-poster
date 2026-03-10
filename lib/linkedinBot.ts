@@ -2,6 +2,7 @@ import { chromium, Frame } from "playwright";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { supabaseAdmin } from "./supabaseClient";
 
 interface LinkedInArgs {
   content: string;
@@ -46,33 +47,26 @@ async function dismissOverlays(page: any) {
 
 async function findEditableViaDOM(page: any): Promise<import("playwright").ElementHandle | null> {
   const handle = await page.evaluateHandle(() => {
-    const matches = (el: Element) => {
+    const matches = (el) => {
       const text = ((el.getAttribute("aria-label") || el.getAttribute("placeholder") || "") + " " + (el.textContent || "")).toLowerCase();
       if (el.getAttribute("contenteditable") === "true") return true;
       if (el.getAttribute("role") === "textbox") return true;
       if (text.includes("talk about") || text.includes("write a post") || text.includes("share your thoughts") || text.includes("what do you want")) return true;
       return false;
     };
-    const visited = new Set<Node>();
-    const stack: (Element | ShadowRoot)[] = [];
-    stack.push(document.documentElement);
+    const visited = new Set();
+    const stack = [document.documentElement];
     while (stack.length) {
-      const node = stack.pop()!;
-      if (visited.has(node)) continue;
+      const node = stack.pop();
+      if (!node || visited.has(node)) continue;
       visited.add(node);
       if (node instanceof Element && matches(node)) {
         return node;
       }
-      const children: Node[] = [];
-      if ((node as any).shadowRoot) {
-        children.push((node as any).shadowRoot);
-      }
-      if (node instanceof Element || node instanceof ShadowRoot) {
-        children.push(...Array.from(node.children || []));
-      }
-      for (const child of children.reverse()) {
-        if (child instanceof Element || child instanceof ShadowRoot) stack.push(child);
-      }
+      const children = [];
+      if (node.shadowRoot) children.push(node.shadowRoot);
+      if (node.children) children.push(...node.children);
+      for (let i = children.length - 1; i >= 0; i--) stack.push(children[i]);
     }
     return null;
   });
