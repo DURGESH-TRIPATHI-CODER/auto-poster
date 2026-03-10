@@ -57,24 +57,27 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
   let tmpFile: string | null = null;
 
   try {
-    await page.goto("https://www.linkedin.com/feed/", { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await delay(2000);
+    // Go straight to feed with shareActive flag to reduce homepage noise
+    await page.goto("https://www.linkedin.com/feed/?shareActive=true", { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await delay(1800);
 
     if (page.url().includes("/login") || page.url().includes("/authwall")) {
       throw new Error("LinkedIn session expired — re-run loginLinkedIn.ts and update LINKEDIN_SESSION secret.");
     }
 
-    // Click "Start a post"
-    const startPostButton = page
-      .locator("button:has-text('Start a post'), button:has-text('Create a post')")
-      .first();
-    await startPostButton.waitFor({ timeout: 30_000 });
-    await startPostButton.click({ force: true });
-    await delay(2000);
-
-    // Wait for share modal
-    const modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
-    await modal.waitFor({ timeout: 30_000 });
+    // If modal isn't already up, click "Start a post"
+    let modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
+    const modalVisible = await modal.isVisible({ timeout: 3000 }).catch(() => false);
+    if (!modalVisible) {
+      const startPostButton = page
+        .locator("button:has-text('Start a post'), button:has-text('Create a post')")
+        .first();
+      await startPostButton.waitFor({ timeout: 30_000 });
+      await startPostButton.click({ force: true });
+      await delay(2000);
+      modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
+      await modal.waitFor({ timeout: 30_000 });
+    }
 
     // Attach image if provided
     if (imageUrl) {
