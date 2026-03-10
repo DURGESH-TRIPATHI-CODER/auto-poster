@@ -44,6 +44,49 @@ async function dismissOverlays(page: any) {
   }
 }
 
+async function findEditableViaDOM(page: any): Promise<import("playwright").ElementHandle | null> {
+  const handle = await page.evaluateHandle(() => {
+    const content = document;
+    const seen = new Set<Node>();
+    const matches = (el: Element) => {
+      const text = (el.getAttribute("aria-label") || el.getAttribute("placeholder") || "").toLowerCase();
+      if (el.getAttribute("contenteditable") === "true") return true;
+      if (el.getAttribute("role") === "textbox") return true;
+      if (text.includes("talk about") || text.includes("write a post") || text.includes("post") || text.includes("share")) return true;
+      return false;
+    };
+    const dfs = (root: Element | ShadowRoot): Element | null => {
+      const children = (root instanceof ShadowRoot ? root : root.shadowRoot) ? [] : [];
+      if (root instanceof ShadowRoot) {
+        for (const n of Array.from(root.childNodes)) {
+          if (n instanceof Element) {
+            const res = dfs(n);
+            if (res) return res;
+          }
+        }
+        return null;
+      }
+      for (const child of Array.from(root.children)) {
+        if (matches(child)) return child;
+        if (child.shadowRoot) {
+          const res = dfs(child.shadowRoot);
+          if (res) return res;
+        }
+        const res = dfs(child as Element);
+        if (res) return res;
+      }
+      return null;
+    };
+    return dfs(content.documentElement);
+  });
+  const elem = handle.asElement();
+  if (!elem) {
+    await handle.dispose();
+    return null;
+  }
+  return elem;
+}
+
 async function capture(page: any, label: string) {
   try {
     const file = path.join(os.tmpdir(), `narada-li-${label}-${Date.now()}.png`);
@@ -230,6 +273,35 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
           await frame.keyboard.type(content, { delay: 30 });
           editorFound = true;
           break;
+        }
+      }
+    }
+
+    // Fallback: DOM search including shadow roots
+    if (!editorFound) {
+      const handle = await findEditableViaDOM(page);
+      if (handle) {
+        try {
+          await handle.scrollIntoViewIfNeeded?.().catch(() => {});
+          await handle.click({ force: true }).catch(() => {});
+          await page.evaluate(
+            (el, text) => {
+              // @ts-ignore
+              el.focus?.();
+              // @ts-ignore
+              el.innerHTML = "";
+              const event = new InputEvent("input", { bubbles: true, cancelable: true });
+              // @ts-ignore
+              el.dispatchEvent(event);
+              // @ts-ignore
+              document.execCommand("insertText", false, text);
+            },
+            handle,
+            content
+          );
+          editorFound = true;
+        } finally {
+          await handle.dispose();
         }
       }
     }
