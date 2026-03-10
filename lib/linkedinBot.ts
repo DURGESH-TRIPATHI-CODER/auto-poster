@@ -154,6 +154,7 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     if (modal) {
       await modal.waitFor({ timeout: 30_000 });
     }
+    console.log("[linkedin] Page URL:", page.url());
 
     // Attach image if provided
     if (imageUrl) {
@@ -181,9 +182,15 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     // Prefer an editor inside the modal, but fall back to any contenteditable on page
     const editorContext = modal ?? page;
     const editor = editorContext
-      .locator("div[role='textbox'], .ql-editor, div[contenteditable='true'], div[data-test-id='composer-editor']")
+      .locator(
+        "div[role='textbox'], .ql-editor, div[contenteditable='true'], div[data-test-id='composer-editor'], div[data-placeholder*='talk about'], div[data-placeholder*='Write a post'], div[aria-label*='Write a post'], div[aria-label*='What do you want']"
+      )
       .first()
-      .or(page.locator("div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor']").first());
+      .or(
+        page.locator(
+          "div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor'], div[data-placeholder*='talk about'], div[data-placeholder*='Write a post'], div[aria-label*='Write a post'], div[aria-label*='What do you want']"
+        ).first()
+      );
 
     let editorFound = false;
     try {
