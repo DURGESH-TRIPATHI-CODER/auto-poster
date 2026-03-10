@@ -171,9 +171,12 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     }
 
     // Type into editor
+    // Prefer an editor inside the modal, but fall back to any contenteditable on page
     const editor = modal
       .locator("div[role='textbox'], .ql-editor, div[contenteditable='true'], div[data-test-id='composer-editor']")
-      .first();
+      .first()
+      .or(page.locator("div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor']").first());
+
     await editor.waitFor({ timeout: 60_000, state: "visible" });
     await editor.click({ force: true });
     await delay(300);
@@ -209,6 +212,16 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     return postUrl;
   } catch (err) {
     await capture(page, "error");
+    try {
+      const candidates = await page
+        .locator("div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor']")
+        .all();
+      console.log("[linkedin] Candidate editors found:", candidates.length);
+      for (let i = 0; i < Math.min(candidates.length, 3); i++) {
+        const html = await candidates[i].evaluate((el: any) => el.outerHTML).catch(() => "");
+        console.log(`[linkedin] editor[${i}]:`, html.slice(0, 300));
+      }
+    } catch {}
     throw err;
   } finally {
     if (tmpFile && fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
