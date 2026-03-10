@@ -4,6 +4,7 @@ import { postToLinkedIn } from "./linkedinBot";
 import { postToTwitter } from "./twitterBot";
 import { sendNoScheduleReminder, sendPostPublishedEmail } from "./email";
 import { isDueNow } from "./validators";
+import { deletePostImage } from "./storage";
 import type { PostRow } from "./types";
 
 function recentlyPublished(row: PostRow, now: Date) {
@@ -68,6 +69,9 @@ export async function runScheduler(now = new Date(), timezone = process.env.WORK
       publishedCount++;
       details.push({ platform: row.platform, content: row.content, status: "published" });
       sendPostPublishedEmail(row.platform, row.content, postUrl).catch(() => {});
+      if (!row.repeat_weekly) {
+        deletePostImage(row.image_url).catch(() => {});
+      }
     } catch (err) {
       console.error(`  [scheduler] post failed [${row.platform}]`, err);
       details.push({ platform: row.platform, content: row.content, status: `FAILED: ${(err as Error).message}` });
@@ -102,6 +106,9 @@ export async function debugPosts() {
         .eq("id", row.id);
       published++;
       sendPostPublishedEmail(row.platform, row.content, postUrl).catch(() => {});
+      if (!row.repeat_weekly) {
+        deletePostImage(row.image_url).catch(() => {});
+      }
       console.log(`  ✓ Published`);
     } catch (err) {
       console.error(`  ✗ Failed [${row.platform}]:`, err);
