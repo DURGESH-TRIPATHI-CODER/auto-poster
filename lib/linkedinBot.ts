@@ -223,6 +223,7 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
 
     // Type into editor (try modal, page, inline placeholder, iframes)
     const editorContext = modal ?? page;
+    // Prefer an editor inside the modal, but fall back to any contenteditable on page
     const editor = editorContext
       .locator(
         "div[role='textbox'], .ql-editor, div[contenteditable='true'], div[data-test-id='composer-editor'], div[data-placeholder*='talk about'], div[data-placeholder*='Write a post'], div[aria-label*='Write a post'], div[aria-label*='What do you want']"
@@ -242,6 +243,17 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
       await page.keyboard.type(content, { delay: 30 });
       editorFound = true;
     } catch {}
+
+    // Playwright role-based fallback
+    if (!editorFound) {
+      const roleEditor = page.getByRole("textbox").first();
+      if (await roleEditor.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await roleEditor.click({ force: true }).catch(() => {});
+        await delay(300);
+        await page.keyboard.type(content, { delay: 30 });
+        editorFound = true;
+      }
+    }
 
     // Inline composer fallback by placeholder/text
     if (!editorFound) {
