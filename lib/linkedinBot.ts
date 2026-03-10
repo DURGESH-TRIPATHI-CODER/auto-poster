@@ -64,7 +64,12 @@ async function openShareModal(page: any) {
     "button[aria-label*='Start a post']",
     "button[aria-label*='Create a post']",
     "button.share-box-feed-entry__trigger",
-    "button[data-control-name='share.feed.compose']"
+    "button[data-control-name='share.feed.compose']",
+    "button[data-control-name='share.start_post']",
+    "button[data-test-share-box-feed-entry-trigger]",
+    "button.artdeco-button--primary.share-box-feed-entry__trigger",
+    "button[data-tracking-control-name*='start_post']",
+    "div.feed-identity-module__actor-meta button"
   ];
 
   for (const sel of triggers) {
@@ -144,9 +149,11 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
       throw new Error("LinkedIn session expired — re-run loginLinkedIn.ts and update LINKEDIN_SESSION secret.");
     }
 
-    // Open share modal
+    // Open share modal (may return null if none visible)
     const modal = await openShareModal(page);
-    await modal.waitFor({ timeout: 30_000 });
+    if (modal) {
+      await modal.waitFor({ timeout: 30_000 });
+    }
 
     // Attach image if provided
     if (imageUrl) {
@@ -172,7 +179,8 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
 
     // Type into editor
     // Prefer an editor inside the modal, but fall back to any contenteditable on page
-    const editor = modal
+    const editorContext = modal ?? page;
+    const editor = editorContext
       .locator("div[role='textbox'], .ql-editor, div[contenteditable='true'], div[data-test-id='composer-editor']")
       .first()
       .or(page.locator("div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor']").first());
