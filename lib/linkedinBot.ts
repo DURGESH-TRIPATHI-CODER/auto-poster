@@ -88,7 +88,16 @@ async function capture(page: any, label: string) {
   try {
     const file = path.join(os.tmpdir(), `narada-li-${label}-${Date.now()}.png`);
     await page.screenshot({ path: file, fullPage: true });
-    console.log(`[linkedin] Saved screenshot: ${file}`);
+    const { data, error } = await supabaseAdmin.storage.from("post-images").upload(`debug/${path.basename(file)}`, fs.readFileSync(file), {
+      contentType: "image/png",
+      upsert: true
+    });
+    if (!error) {
+      const { data: urlData } = supabaseAdmin.storage.from("post-images").getPublicUrl(data?.path || "");
+      console.log(`[linkedin] Saved screenshot: ${urlData.publicUrl}`);
+    } else {
+      console.log(`[linkedin] Saved screenshot locally: ${file} (upload failed: ${error.message})`);
+    }
   } catch (err) {
     console.log("[linkedin] Failed to save screenshot:", err);
   }
