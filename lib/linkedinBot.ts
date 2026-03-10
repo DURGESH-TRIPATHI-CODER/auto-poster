@@ -1,4 +1,4 @@
-import { chromium } from "playwright";
+import { chromium, Frame } from "playwright";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -185,10 +185,36 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
       .first()
       .or(page.locator("div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor']").first());
 
-    await editor.waitFor({ timeout: 60_000, state: "visible" });
-    await editor.click({ force: true });
-    await delay(300);
-    await page.keyboard.type(content, { delay: 30 });
+    let editorFound = false;
+    try {
+      await editor.waitFor({ timeout: 20_000, state: "visible" });
+      await editor.click({ force: true });
+      await delay(300);
+      await page.keyboard.type(content, { delay: 30 });
+      editorFound = true;
+    } catch {}
+
+    // Fallback: search inside iframes for a contenteditable editor
+    if (!editorFound) {
+      const frames: Frame[] = page.frames();
+      for (const frame of frames) {
+        const frameEditor = frame
+          .locator("div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor']")
+          .first();
+        if (await frameEditor.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await frameEditor.click({ force: true }).catch(() => {});
+          await delay(300);
+          await frame.keyboard.type(content, { delay: 30 });
+          editorFound = true;
+          break;
+        }
+      }
+    }
+
+    if (!editorFound) {
+      throw new Error("LinkedIn editor not found (modal or iframe).");
+    }
+
     await delay(800);
 
     // Click Post button
