@@ -46,38 +46,35 @@ async function dismissOverlays(page: any) {
 
 async function findEditableViaDOM(page: any): Promise<import("playwright").ElementHandle | null> {
   const handle = await page.evaluateHandle(() => {
-    const content = document;
-    const seen = new Set<Node>();
     const matches = (el: Element) => {
-      const text = (el.getAttribute("aria-label") || el.getAttribute("placeholder") || "").toLowerCase();
+      const text = ((el.getAttribute("aria-label") || el.getAttribute("placeholder") || "") + " " + (el.textContent || "")).toLowerCase();
       if (el.getAttribute("contenteditable") === "true") return true;
       if (el.getAttribute("role") === "textbox") return true;
-      if (text.includes("talk about") || text.includes("write a post") || text.includes("post") || text.includes("share")) return true;
+      if (text.includes("talk about") || text.includes("write a post") || text.includes("share your thoughts") || text.includes("what do you want")) return true;
       return false;
     };
-    const dfs = (root: Element | ShadowRoot): Element | null => {
-      const children = (root instanceof ShadowRoot ? root : root.shadowRoot) ? [] : [];
-      if (root instanceof ShadowRoot) {
-        for (const n of Array.from(root.childNodes)) {
-          if (n instanceof Element) {
-            const res = dfs(n);
-            if (res) return res;
-          }
-        }
-        return null;
+    const visited = new Set<Node>();
+    const stack: (Element | ShadowRoot)[] = [];
+    stack.push(document.documentElement);
+    while (stack.length) {
+      const node = stack.pop()!;
+      if (visited.has(node)) continue;
+      visited.add(node);
+      if (node instanceof Element && matches(node)) {
+        return node;
       }
-      for (const child of Array.from(root.children)) {
-        if (matches(child)) return child;
-        if (child.shadowRoot) {
-          const res = dfs(child.shadowRoot);
-          if (res) return res;
-        }
-        const res = dfs(child as Element);
-        if (res) return res;
+      const children: Node[] = [];
+      if ((node as any).shadowRoot) {
+        children.push((node as any).shadowRoot);
       }
-      return null;
-    };
-    return dfs(content.documentElement);
+      if (node instanceof Element || node instanceof ShadowRoot) {
+        children.push(...Array.from(node.children || []));
+      }
+      for (const child of children.reverse()) {
+        if (child instanceof Element || child instanceof ShadowRoot) stack.push(child);
+      }
+    }
+    return null;
   });
   const elem = handle.asElement();
   if (!elem) {
@@ -307,7 +304,7 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     }
 
     if (!editorFound) {
-      throw new Error("LinkedIn editor not found (modal/inline/iframe).");
+      throw new Error("LinkedIn editor not found (modal/inline/iframe/dom).");
     }
 
     await delay(800);
