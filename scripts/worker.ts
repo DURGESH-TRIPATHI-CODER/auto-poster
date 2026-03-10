@@ -15,6 +15,7 @@
 import "dotenv/config";
 import cron from "node-cron";
 import { runScheduler, runWeeklyReminder, debugPosts } from "../lib/scheduler";
+import { cleanupImages } from "../lib/storage";
 
 const timezone = process.env.WORKER_TIMEZONE || "Asia/Calcutta";
 const forceNow = process.argv.includes("--now");
@@ -36,6 +37,7 @@ async function runPublishJob() {
         console.log(`  -> [${d.platform}] "${d.content.slice(0, 50)}..." — ${d.status}`);
       }
     }
+    await cleanupImages();
   } catch (error) {
     console.error("[publish] failed:", error);
     // Re-throw in CI so the workflow step is marked as failed

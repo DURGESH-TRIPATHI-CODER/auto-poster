@@ -39,3 +39,31 @@ export async function listAllImages(): Promise<string[]> {
   }
   return paths;
 }
+
+export async function cleanupImages() {
+  const { data: posts, error } = await supabaseAdmin.from("posts").select("image_url, repeat_weekly, published");
+  if (error) {
+    console.warn("[storage] cleanup: failed to read posts:", error.message);
+    return;
+  }
+
+  const keep = new Set<string>();
+  for (const row of posts ?? []) {
+    const path = pathFromPublicUrl((row as any).image_url);
+    if (path) keep.add(path);
+  }
+
+  const all = await listAllImages();
+  const toDelete = all.filter((p) => !keep.has(p));
+
+  if (toDelete.length === 0) return;
+
+  const chunkSize = 100;
+  for (let i = 0; i < toDelete.length; i += chunkSize) {
+    const chunk = toDelete.slice(i, i + chunkSize);
+    const { error: delErr } = await supabaseAdmin.storage.from(BUCKET).remove(chunk);
+    if (delErr) {
+      console.warn("[storage] cleanup delete failed:", delErr.message);
+    }
+  }
+}
