@@ -44,6 +44,16 @@ async function dismissOverlays(page: any) {
   }
 }
 
+async function capture(page: any, label: string) {
+  try {
+    const file = path.join(os.tmpdir(), `narada-li-${label}-${Date.now()}.png`);
+    await page.screenshot({ path: file, fullPage: true });
+    console.log(`[linkedin] Saved screenshot: ${file}`);
+  } catch (err) {
+    console.log("[linkedin] Failed to save screenshot:", err);
+  }
+}
+
 async function openShareModal(page: any) {
   let modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
   if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) return modal;
@@ -161,7 +171,9 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     }
 
     // Type into editor
-    const editor = modal.locator("div[role='textbox'], .ql-editor, div[contenteditable='true']").first();
+    const editor = modal
+      .locator("div[role='textbox'], .ql-editor, div[contenteditable='true'], div[data-test-id='composer-editor']")
+      .first();
     await editor.waitFor({ timeout: 60_000, state: "visible" });
     await editor.click({ force: true });
     await delay(300);
@@ -195,6 +207,9 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     } catch {}
 
     return postUrl;
+  } catch (err) {
+    await capture(page, "error");
+    throw err;
   } finally {
     if (tmpFile && fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile);
     await context.close();
