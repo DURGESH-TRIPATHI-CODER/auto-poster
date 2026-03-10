@@ -178,8 +178,7 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
       console.log("  [linkedin] Image attached");
     }
 
-    // Type into editor
-    // Prefer an editor inside the modal, but fall back to any contenteditable on page
+    // Type into editor (try modal, page, inline placeholder, iframes)
     const editorContext = modal ?? page;
     const editor = editorContext
       .locator(
@@ -201,12 +200,29 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
       editorFound = true;
     } catch {}
 
+    // Inline composer fallback by placeholder/text
+    if (!editorFound) {
+      const inline = page
+        .locator(
+          "div[data-placeholder*='talk about'], div[aria-label*='talk about'], div[data-placeholder*='post'], div[aria-label*='post'], div:has-text('What do you want to talk about')"
+        )
+        .first();
+      if (await inline.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await inline.click({ force: true }).catch(() => {});
+        await delay(300);
+        await page.keyboard.insertText(content);
+        editorFound = true;
+      }
+    }
+
     // Fallback: search inside iframes for a contenteditable editor
     if (!editorFound) {
       const frames: Frame[] = page.frames();
       for (const frame of frames) {
         const frameEditor = frame
-          .locator("div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor']")
+          .locator(
+            "div[role='textbox'], [contenteditable='true'], .ql-editor, div[data-test-id='composer-editor'], div[data-placeholder*='talk about'], div[data-placeholder*='Write a post'], div[aria-label*='Write a post'], div[aria-label*='What do you want']"
+          )
           .first();
         if (await frameEditor.isVisible({ timeout: 3000 }).catch(() => false)) {
           await frameEditor.click({ force: true }).catch(() => {});
@@ -219,7 +235,7 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
     }
 
     if (!editorFound) {
-      throw new Error("LinkedIn editor not found (modal or iframe).");
+      throw new Error("LinkedIn editor not found (modal/inline/iframe).");
     }
 
     await delay(800);
