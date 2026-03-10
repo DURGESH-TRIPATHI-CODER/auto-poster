@@ -52,12 +52,12 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
       .locator("button:has-text('Start a post'), button:has-text('Create a post')")
       .first();
     await startPostButton.waitFor({ timeout: 30_000 });
-    await startPostButton.click();
-    await delay(1500);
+    await startPostButton.click({ force: true });
+    await delay(2000);
 
     // Wait for share modal
     const modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
-    await modal.waitFor({ timeout: 15_000 });
+    await modal.waitFor({ timeout: 30_000 });
 
     // Attach image if provided
     if (imageUrl) {
@@ -99,10 +99,10 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
 
     const primaryVisible = await postButton.isVisible({ timeout: 5_000 }).catch(() => false);
     if (primaryVisible) {
-      await postButton.click();
+      await postButton.click({ force: true });
     } else {
       await fallbackPostButton.waitFor({ timeout: 15_000 });
-      await fallbackPostButton.click();
+      await fallbackPostButton.click({ force: true });
     }
 
     await delay(5000);

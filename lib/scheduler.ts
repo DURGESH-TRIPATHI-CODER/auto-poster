@@ -13,7 +13,7 @@ function recentlyPublished(row: PostRow, now: Date) {
   return daysSince < 6.5;
 }
 
-export async function runScheduler(now = new Date()) {
+export async function runScheduler(now = new Date(), timezone = process.env.WORKER_TIMEZONE || "Asia/Calcutta") {
   const { data, error } = await supabaseAdmin.from("posts").select("*").eq("published", false);
   if (error) throw error;
 
@@ -24,11 +24,17 @@ export async function runScheduler(now = new Date()) {
   const details: Array<{ platform: string; content: string; status: string }> = [];
 
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  console.log(`  Current time: ${days[now.getDay()]} ${now.getHours().toString().padStart(2,"0")}:${now.getMinutes().toString().padStart(2,"0")}`);
+  const localNow = new Date(now.toLocaleString("en-US", { timeZone: timezone }));
+  console.log(
+    `  Current time (${timezone}): ${days[localNow.getDay()]} ${localNow
+      .getHours()
+      .toString()
+      .padStart(2, "0")}:${localNow.getMinutes().toString().padStart(2, "0")}`
+  );
   console.log(`  Posts pending in DB: ${rows.length}`);
 
   for (const row of rows) {
-    const due = isDueNow(row.day_of_week, row.post_time, now);
+    const due = isDueNow(row.day_of_week, row.post_time, localNow);
     const recent = row.repeat_weekly && recentlyPublished(row, now);
 
     if (!due) {
@@ -60,7 +66,7 @@ export async function runScheduler(now = new Date()) {
         .eq("id", row.id);
 
       publishedCount++;
-      details.push({ platform: row.platform, content: row.content, status: "published ✓" });
+      details.push({ platform: row.platform, content: row.content, status: "published" });
       sendPostPublishedEmail(row.platform, row.content, postUrl).catch(() => {});
     } catch (err) {
       console.error(`  [scheduler] post failed [${row.platform}]`, err);

@@ -73,8 +73,26 @@ export async function postToTwitter({ content, imageUrl }: TwitterArgs): Promise
     const postButton = page
       .locator("button[data-testid='tweetButtonInline'], button[data-testid='tweetButton']")
       .first();
-    await postButton.waitFor({ timeout: 15_000 });
-    await postButton.click();
+    await postButton.waitFor({ timeout: 30_000 });
+
+    // Clear blocking layers/modals that sometimes sit on top of the button
+    await page.keyboard.press("Escape").catch(() => {});
+    await delay(200);
+    try {
+      await page.locator("#layers div[role='presentation']").evaluateAll((nodes) => {
+        nodes.forEach((n) => n.parentElement?.removeChild(n));
+      });
+    } catch {
+      /* best-effort cleanup */
+    }
+
+    // Primary click
+    try {
+      await postButton.click({ timeout: 15_000, force: true });
+    } catch (err) {
+      // Fallback: JS-dispatch click to bypass overlay hit-testing
+      await postButton.evaluate((btn: HTMLElement) => btn.click());
+    }
 
     await delay(5000);
 

@@ -24,16 +24,16 @@ const runOnce = process.argv.includes("--once") || process.env.CI === "true";
 
 async function runPublishJob() {
   const now = new Date();
-  console.log(`\n[${now.toLocaleString("en-IN", { timeZone: "Asia/Calcutta" })}] Running publish job...`);
+  console.log(`\n[${now.toLocaleString("en-IN", { timeZone: timezone })}] Running publish job...`);
   try {
     if (forceNow) {
       const result = await debugPosts();
       console.log(`[debug] ${result.message}`);
     } else {
-      const result = await runScheduler(now);
+      const result = await runScheduler(now, timezone);
       console.log(`[publish] checked=${result.checked} published=${result.published} skipped=${result.skipped}`);
       for (const d of result.details) {
-        console.log(`  → [${d.platform}] "${d.content.slice(0, 50)}..." — ${d.status}`);
+        console.log(`  -> [${d.platform}] "${d.content.slice(0, 50)}..." — ${d.status}`);
       }
     }
   } catch (error) {
