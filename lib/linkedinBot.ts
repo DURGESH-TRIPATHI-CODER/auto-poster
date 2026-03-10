@@ -27,6 +27,23 @@ function ensureDecodedStorage(filePath: string) {
   }
 }
 
+async function dismissOverlays(page: any) {
+  const selectors = [
+    "button:has-text('Accept')",
+    "button:has-text('Agree')",
+    "button:has-text('I agree')",
+    "button[data-test-global-nav-header-cookie-banner-accept]",
+    "button[data-test-id='cookie-banner-consent-accept']",
+  ];
+  for (const sel of selectors) {
+    const btn = page.locator(sel).first();
+    if (await btn.isVisible({ timeout: 500 }).catch(() => false)) {
+      await btn.click({ force: true }).catch(() => {});
+      await delay(300);
+    }
+  }
+}
+
 async function openShareModal(page: any) {
   let modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
   if (await modal.isVisible({ timeout: 2000 }).catch(() => false)) return modal;
@@ -48,6 +65,14 @@ async function openShareModal(page: any) {
       if (await modal.isVisible({ timeout: 3000 }).catch(() => false)) return modal;
     }
   }
+
+  // Navigate to explicit create-post URL
+  try {
+    await page.goto("https://www.linkedin.com/feed/?createPost=true", { waitUntil: "domcontentloaded", timeout: 45_000 });
+    await delay(3000);
+    modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
+    if (await modal.isVisible({ timeout: 4000 }).catch(() => false)) return modal;
+  } catch {}
 
   // Last-resort: JS click
   try {
@@ -102,7 +127,8 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
   try {
     // Go straight to feed with shareActive flag to reduce homepage noise
     await page.goto("https://www.linkedin.com/feed/?shareActive=true", { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await delay(2000);
+    await delay(2500);
+    await dismissOverlays(page);
 
     if (page.url().includes("/login") || page.url().includes("/authwall")) {
       throw new Error("LinkedIn session expired — re-run loginLinkedIn.ts and update LINKEDIN_SESSION secret.");
@@ -136,7 +162,7 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
 
     // Type into editor
     const editor = modal.locator("div[role='textbox'], .ql-editor, div[contenteditable='true']").first();
-    await editor.waitFor({ timeout: 45_000, state: "visible" });
+    await editor.waitFor({ timeout: 60_000, state: "visible" });
     await editor.click({ force: true });
     await delay(300);
     await page.keyboard.type(content, { delay: 30 });
