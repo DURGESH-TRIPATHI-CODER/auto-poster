@@ -12,6 +12,21 @@ function delay(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function ensureDecodedStorage(filePath: string) {
+  const raw = fs.readFileSync(filePath, "utf-8").trim();
+  if (!raw) throw new Error(`Storage state file is empty: ${filePath}`);
+  if (raw.startsWith("{")) return;
+  try {
+    const decoded = Buffer.from(raw, "base64").toString("utf-8");
+    if (!decoded.trim().startsWith("{")) {
+      throw new Error("decoded content is not JSON");
+    }
+    fs.writeFileSync(filePath, decoded);
+  } catch (err) {
+    throw new Error(`Storage state not valid JSON or base64: ${filePath}`);
+  }
+}
+
 async function downloadToTemp(url: string): Promise<string> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to download image: ${res.status}`);
@@ -23,6 +38,8 @@ async function downloadToTemp(url: string): Promise<string> {
 }
 
 export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promise<string | undefined> {
+  ensureDecodedStorage(".sessions/linkedin.json");
+
   const browser = await chromium.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
