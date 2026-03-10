@@ -59,7 +59,7 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
   try {
     // Go straight to feed with shareActive flag to reduce homepage noise
     await page.goto("https://www.linkedin.com/feed/?shareActive=true", { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await delay(1800);
+    await delay(1500);
 
     if (page.url().includes("/login") || page.url().includes("/authwall")) {
       throw new Error("LinkedIn session expired — re-run loginLinkedIn.ts and update LINKEDIN_SESSION secret.");
@@ -67,17 +67,19 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
 
     // If modal isn't already up, click "Start a post"
     let modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
-    const modalVisible = await modal.isVisible({ timeout: 3000 }).catch(() => false);
-    if (!modalVisible) {
+    let modalVisible = await modal.isVisible({ timeout: 3000 }).catch(() => false);
+    for (let attempt = 0; attempt < 2 && !modalVisible; attempt++) {
       const startPostButton = page
-        .locator("button:has-text('Start a post'), button:has-text('Create a post')")
+        .locator(
+          "button:has-text('Start a post'), button:has-text('Create a post'), button[aria-label*='Start a post'], button[aria-label*='Create a post']"
+        )
         .first();
       await startPostButton.waitFor({ timeout: 30_000 });
       await startPostButton.click({ force: true });
-      await delay(2000);
-      modal = page.locator("[data-test-modal-id='sharebox'], .share-box-home-v2").first();
-      await modal.waitFor({ timeout: 30_000 });
+      await delay(2500);
+      modalVisible = await modal.isVisible({ timeout: 5000 }).catch(() => false);
     }
+    await modal.waitFor({ timeout: 30_000 });
 
     // Attach image if provided
     if (imageUrl) {
@@ -103,8 +105,8 @@ export async function postToLinkedIn({ content, imageUrl }: LinkedInArgs): Promi
 
     // Type into editor
     const editor = modal.locator("div[role='textbox'], .ql-editor").first();
-    await editor.waitFor({ timeout: 15_000 });
-    await editor.click();
+    await editor.waitFor({ timeout: 30_000 });
+    await editor.click({ force: true });
     await delay(300);
     await page.keyboard.type(content, { delay: 30 });
     await delay(800);
