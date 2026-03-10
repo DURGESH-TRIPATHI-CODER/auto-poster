@@ -13,18 +13,29 @@ function delay(ms: number) {
 }
 
 function ensureDecodedStorage(filePath: string) {
-  const raw = fs.readFileSync(filePath, "utf-8").trim();
+  const rawBuf = fs.readFileSync(filePath);
+  const raw = rawBuf.toString("utf-8").trim();
   if (!raw) throw new Error(`Storage state file is empty: ${filePath}`);
-  if (raw.startsWith("{")) return;
+
+  // 1) Already JSON?
   try {
-    const decoded = Buffer.from(raw, "base64").toString("utf-8");
-    if (!decoded.trim().startsWith("{")) {
-      throw new Error("decoded content is not JSON");
-    }
+    JSON.parse(raw);
+    return;
+  } catch {}
+
+  // 2) Try base64 → JSON
+  try {
+    const b64 = raw.replace(/^"+|"+$/g, ""); // strip accidental wrapping quotes
+    const decoded = Buffer.from(b64, "base64").toString("utf-8");
+    JSON.parse(decoded); // validate
     fs.writeFileSync(filePath, decoded);
-  } catch (err) {
-    throw new Error(`Storage state not valid JSON or base64: ${filePath}`);
-  }
+    return;
+  } catch {}
+
+  throw new Error(
+    `Storage state is neither JSON nor base64 JSON: ${filePath}. ` +
+      `Ensure the secret is a base64-encoded Playwright storageState JSON (or plain JSON).`
+  );
 }
 
 async function downloadToTemp(url: string): Promise<string> {
@@ -57,8 +68,9 @@ export async function postToTwitter({ content, imageUrl }: TwitterArgs): Promise
   let tmpFile: string | null = null;
 
   try {
-    await page.goto("https://x.com/home", { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await delay(2000);
+    // Go straight to the composer to avoid feed overlays
+    await page.goto("https://x.com/compose/post", { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await delay(1500);
 
     if (page.url().includes("/login") || page.url().includes("/i/flow/login")) {
       throw new Error("X session expired — re-run loginX.ts and update TWITTER_SESSION secret.");
